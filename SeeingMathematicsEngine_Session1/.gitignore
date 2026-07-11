@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+media/
+media_exports/*.mp4
+media_exports/*.mov
+media_exports/*.gif
+.DS_Store
+.spyproject/
+.vscode/
+.idea/

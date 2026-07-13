@@ -4,3 +4,9 @@ from engine.subspaces import Subspace
 from .rank_collapse import RankCollapse, RankCollapseSnapshot
 
 from .rank_collapse_path import RankCollapsePath, RankCollapsePathSnapshot
+
+from .rank_collapse_display import (
+    LinearDisplayProjector,
+    RankCollapseDisplayAdapter,
+    RankCollapseDisplaySnapshot,
+)

@@ -8,6 +8,6 @@ cd "$repo_root"
 
 export PYTHONPATH="$repo_root${PYTHONPATH:+:$PYTHONPATH}"
 
-python -m manim -ql \
+python -m manim -pql \
   scenes/rank_collapse_geometry_smoke.py \
   RankCollapseGeometrySmoke

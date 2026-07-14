@@ -29,10 +29,10 @@ class _ArrowDisplayLike(Protocol):
 
 
 class _LinearCombinationDisplaySnapshotLike(Protocol):
-    """Structural type consumed by :class:`ManimLinearCombinationGeometry`."""
+    """Canonical display-snapshot fields consumed by the Manim adapter."""
 
-    term_arrows: Sequence[_ArrowDisplayLike]
-    resultant_arrow: _ArrowDisplayLike
+    display_term_segments: np.ndarray
+    display_resultant_segment: np.ndarray
 
 
 class ManimLinearCombinationGeometry(VGroup):
@@ -42,9 +42,10 @@ class ManimLinearCombinationGeometry(VGroup):
     ----------
     snapshot
         A ``LinearCombinationGeometryDisplaySnapshot`` produced by the
-        renderer-independent display adapter.  The canonical shape is a
-        sequence named ``term_arrows`` and one ``resultant_arrow``; each arrow
-        supplies ``start`` and ``end`` display points.
+        renderer-independent display adapter.  Its canonical fields are
+        ``display_term_segments`` with shape ``(term_count, 2,
+        display_dimension)`` and ``display_resultant_segment`` with shape
+        ``(2, display_dimension)``.
     term_arrow_kwargs
         Optional Manim ``Arrow`` style keyword arguments shared by all term
         arrows.  ``buff`` is fixed at zero so displayed endpoints are not
@@ -197,13 +198,42 @@ def _arrow_kwargs(values: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def _snapshot_endpoints(snapshot: object) -> tuple[tuple[EndpointPair, ...], EndpointPair]:
-    """Extract and validate all displayed arrow endpoints.
+    """Extract endpoints from one projected display snapshot.
 
-    Checkpoint 13's canonical representation uses ``term_arrows`` and
-    ``resultant_arrow``.  The small alternate-name fallbacks keep this final
-    renderer boundary compatible with equivalent endpoint-only snapshot
-    representations without importing or duplicating upstream mathematics.
+    Checkpoint 13's canonical ``LinearCombinationGeometryDisplaySnapshot``
+    exposes ``display_term_segments`` and ``display_resultant_segment``.
+    Those fields are preferred explicitly.  The endpoint-wrapper fallbacks are
+    retained only for compatibility with the focused Checkpoint 14 adapter
+    tests and equivalent thin display representations.
     """
+
+    display_terms = _first_attribute(snapshot, ("display_term_segments",))
+    display_resultant = _first_attribute(
+        snapshot,
+        ("display_resultant_segment",),
+    )
+
+    if display_terms is not _MISSING and display_resultant is not _MISSING:
+        term_segments = np.asarray(display_terms, dtype=float)
+        resultant_segment = np.asarray(display_resultant, dtype=float)
+
+        if term_segments.ndim != 3 or term_segments.shape[1] != 2:
+            raise ValueError(
+                "display_term_segments must have shape "
+                "(term_count, 2, display_dimension)"
+            )
+        if resultant_segment.ndim != 2 or resultant_segment.shape[0] != 2:
+            raise ValueError(
+                "display_resultant_segment must have shape "
+                "(2, display_dimension)"
+            )
+        if term_segments.shape[2] != resultant_segment.shape[1]:
+            raise ValueError(
+                "term and resultant display dimensions must agree"
+            )
+
+        terms = tuple(_endpoint_pair(segment) for segment in term_segments)
+        return terms, _endpoint_pair(resultant_segment)
 
     term_items = _first_attribute(
         snapshot,
@@ -256,9 +286,9 @@ def _snapshot_endpoints(snapshot: object) -> tuple[tuple[EndpointPair, ...], End
         )
 
     raise TypeError(
-        "snapshot must expose displayed term and resultant arrow endpoints"
+        "snapshot must expose display_term_segments and "
+        "display_resultant_segment"
     )
-
 
 def _endpoint_pair(value: object) -> EndpointPair:
     start = _first_attribute(value, ("start", "start_point", "tail"))
@@ -266,6 +296,10 @@ def _endpoint_pair(value: object) -> EndpointPair:
 
     if start is not _MISSING and end is not _MISSING:
         return _manim_point(start), _manim_point(end)
+
+    if isinstance(value, np.ndarray):
+        if value.ndim == 2 and value.shape[0] == 2:
+            return _manim_point(value[0]), _manim_point(value[1])
 
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
         if len(value) == 2:

@@ -13,3 +13,5 @@ from .rank_collapse_geometry_display import RankCollapseGeometryDisplayAdapter
 from .linear_combination import LinearCombination, LinearCombinationSnapshot
 
 from .coefficient_sweep_path import CoefficientSweepPath
+
+from .linear_combination_geometry import LinearCombinationGeometry, LinearCombinationGeometrySnapshot

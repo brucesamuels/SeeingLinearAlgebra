@@ -17,3 +17,5 @@ from .coefficient_sweep_path import CoefficientSweepPath
 from .linear_combination_geometry import LinearCombinationGeometry, LinearCombinationGeometrySnapshot
 
 from .linear_combination_geometry_path import LinearCombinationGeometryPath
+
+from .linear_combination_geometry_display import LinearCombinationGeometryDisplayAdapter, LinearCombinationGeometryDisplaySnapshot

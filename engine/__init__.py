@@ -9,3 +9,5 @@ from .rank_collapse_display import (
 )
 from .rank_collapse_geometry_path import RankCollapseGeometryPath
 from .rank_collapse_geometry_display import RankCollapseGeometryDisplayAdapter
+
+from .linear_combination import LinearCombination, LinearCombinationSnapshot

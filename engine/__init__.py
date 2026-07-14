@@ -8,3 +8,4 @@ from .rank_collapse_display import (
     RankCollapseDisplaySnapshot,
 )
 from .rank_collapse_geometry_path import RankCollapseGeometryPath
+from .rank_collapse_geometry_display import RankCollapseGeometryDisplayAdapter

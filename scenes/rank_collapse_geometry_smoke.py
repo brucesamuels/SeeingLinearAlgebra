@@ -1,4 +1,4 @@
-"""Smoke scene for a topology-aware grid collapsing from a plane to a line."""
+"""Smoke scene for the full geometry-to-display rank-collapse pipeline."""
 
 from __future__ import annotations
 
@@ -7,7 +7,11 @@ import numpy as np
 from manim import BLUE, Scene, ValueTracker, linear
 
 from engine.rank_collapse import RankCollapse
+from engine.rank_collapse_display import LinearDisplayProjector
 from engine.rank_collapse_geometry import RankCollapseGeometry
+from engine.rank_collapse_geometry_display import (
+    RankCollapseGeometryDisplayAdapter,
+)
 from engine.rank_collapse_geometry_path import RankCollapseGeometryPath
 from manim_adapters.rank_collapse_geometry import ManimRankCollapseGeometry
 
@@ -50,9 +54,14 @@ class RankCollapseGeometrySmoke(Scene):
             geometry,
             collapse,
         )
+        projector = LinearDisplayProjector(np.eye(2))
+        display_path = RankCollapseGeometryDisplayAdapter(
+            geometry_path,
+            projector,
+        )
 
         grid = ManimRankCollapseGeometry(
-            geometry_path.snapshot(0.0),
+            display_path.snapshot(0.0),
             polyline_style={
                 "stroke_color": BLUE,
                 "stroke_width": 3.0,
@@ -63,7 +72,7 @@ class RankCollapseGeometrySmoke(Scene):
         parameter = ValueTracker(0.0)
 
         def update_grid(adapter: ManimRankCollapseGeometry) -> None:
-            adapter.set_snapshot(geometry_path.snapshot(parameter.get_value()))
+            adapter.set_snapshot(display_path.snapshot(parameter.get_value()))
 
         grid.add_updater(update_grid)
         self.add(grid)

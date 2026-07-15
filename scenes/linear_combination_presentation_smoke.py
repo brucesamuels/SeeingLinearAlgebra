@@ -1,16 +1,15 @@
 """Smoke scene for the reusable linear-combination presentation composite.
 
-Checkpoint 26 integrates the reusable :class:`ManimLinearCombinationLabels`
-adapter as a scene-level sibling of :class:`ManimLinearCombinationPresentation`.
-The completed resultant trace remains an independent fixed adapter.  Each
-animation frame requests exactly one
-``LinearCombinationGeometryDisplaySnapshot`` and passes that same object to the
-moving presentation composite and the moving labels.
+Checkpoint 28 integrates the reusable :class:`ManimEquationCallout` as a
+fixed scene-level sibling of the existing labeled moving presentation.  The
+completed resultant trace remains an independent fixed adapter.  Each animation
+frame requests exactly one ``LinearCombinationGeometryDisplaySnapshot`` and
+passes that same object to the moving presentation composite and moving labels.
 
 No coefficient interpolation, vector arithmetic, tip-to-tail construction,
-trace construction, display projection, or adapter-internal geometry is
-reproduced in this scene.  Label appearance remains scene-level pedagogical
-sequencing rather than adapter behavior.
+trace construction, display projection, equation derivation, or adapter-internal
+geometry is reproduced in this scene.  Callout placement and appearance remain
+scene-level pedagogical sequencing.
 """
 
 from __future__ import annotations
@@ -20,10 +19,12 @@ from dataclasses import dataclass
 import numpy as np
 from manim import (
     BLUE_C,
+    DL,
     DOWN,
     GREEN_C,
     LEFT,
     ORANGE,
+    RIGHT,
     UR,
     YELLOW,
     FadeIn,
@@ -47,6 +48,7 @@ from engine.linear_combination_trace import LinearCombinationTrace
 from engine.linear_combination_trace_display import (
     LinearCombinationTraceDisplayAdapter,
 )
+from engine.manim_equation_callout import ManimEquationCallout
 from engine.manim_linear_combination_labels import ManimLinearCombinationLabels
 from engine.manim_linear_combination_presentation import (
     ManimLinearCombinationPresentation,
@@ -79,6 +81,25 @@ SMOKE_TERM_LABEL_OFFSETS = (
 )
 SMOKE_RESULTANT_LABEL = r"\mathbf{w}"
 SMOKE_RESULTANT_LABEL_OFFSET = (0.0, -0.30)
+SMOKE_EQUATION = r"\mathbf{w}=a\mathbf{u}+b\mathbf{v}"
+SMOKE_EQUATION_CAPTION = "Scale first, then add tip to tail."
+
+
+def build_linear_combination_equation_callout() -> ManimEquationCallout:
+    """Build and place the fixed lesson-level equation callout."""
+
+    callout = ManimEquationCallout(
+        SMOKE_EQUATION,
+        caption=SMOKE_EQUATION_CAPTION,
+        content_buff=0.16,
+        panel_buff=0.20,
+        equation_kwargs={"font_size": 32},
+        caption_kwargs={"font_size": 18},
+        panel_kwargs={"stroke_width": 1.5},
+    )
+    callout.to_corner(DL)
+    callout.shift(0.28 * UP + 0.28 * RIGHT)
+    return callout
 
 
 @dataclass(frozen=True)
@@ -260,12 +281,14 @@ class LinearCombinationPresentationSmoke(Scene):
         labels.resultant_label_mobject.set_color(YELLOW)
 
         moving_group = VGroup(presentation, labels)
+        equation_callout = build_linear_combination_equation_callout()
 
         self.play(FadeIn(plane), FadeIn(title))
         # Keep the synchronized family intact.  Animating ``labels`` as a
         # separate child after adding ``moving_group`` would cause Manim to
         # dissolve the parent group while extracting that child animation.
         self.play(FadeIn(trace), FadeIn(moving_group))
+        self.play(FadeIn(equation_callout))
         self.wait(0.25)
 
         progress_tracker = ValueTracker(0.0)

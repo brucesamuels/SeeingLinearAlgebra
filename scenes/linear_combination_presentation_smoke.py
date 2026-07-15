@@ -1,15 +1,16 @@
 """Smoke scene for the reusable linear-combination presentation composite.
 
-Checkpoint 29 adds one brief pre-sweep prediction beat through the established
-:func:`engine.scene_tools.pause_and_predict` helper.  The prompt remains a
-temporary scene-level overlay; the equation callout and completed resultant
-trace remain fixed siblings, while the presentation and labels remain the only
-tracker-driven family.
+Checkpoint 30 closes the accumulated lesson segment with one concise
+post-sweep reflection.  The existing equation callout, prediction prompt,
+completed resultant trace, presentation, and labels retain their established
+responsibilities.  The reflection is a fixed scene-level callout revealed only
+after the exact endpoint snapshot is pinned.
 
 No coefficient interpolation, vector arithmetic, tip-to-tail construction,
 trace construction, display projection, equation derivation, or adapter-internal
-geometry is reproduced in this scene.  Prompt text, placement, appearance, and
-pause duration remain scene-level pedagogical sequencing.
+geometry is reproduced in this scene.  Prompt and reflection wording,
+placement, appearance, and pause duration remain scene-level pedagogical
+sequencing.
 """
 
 from __future__ import annotations
@@ -89,6 +90,13 @@ SMOKE_PREDICTION_PROMPT = (
     "Where should the second scaled vector begin\n"
     "in a tip-to-tail sum?"
 )
+SMOKE_REFLECTION_EQUATION = (
+    r"\mathbf{w}\in\operatorname{span}"
+    r"\left\{\mathbf{u},\mathbf{v}\right\}"
+)
+SMOKE_REFLECTION_CAPTION = (
+    "Coefficients move the resultant within this span."
+)
 
 
 def build_linear_combination_prediction_prompt() -> VGroup:
@@ -115,6 +123,24 @@ def build_linear_combination_equation_callout() -> ManimEquationCallout:
     )
     callout.to_corner(DL)
     callout.shift(0.28 * UP + 0.28 * RIGHT)
+    return callout
+
+
+def build_linear_combination_post_sweep_reflection_callout(
+) -> ManimEquationCallout:
+    """Build and place the fixed post-sweep span reflection."""
+
+    callout = ManimEquationCallout(
+        SMOKE_REFLECTION_EQUATION,
+        caption=SMOKE_REFLECTION_CAPTION,
+        content_buff=0.16,
+        panel_buff=0.20,
+        equation_kwargs={"font_size": 30},
+        caption_kwargs={"font_size": 18},
+        panel_kwargs={"stroke_width": 1.5},
+    )
+    callout.to_edge(LEFT)
+    callout.shift(0.75 * UP + 0.25 * RIGHT)
     return callout
 
 
@@ -299,6 +325,9 @@ class LinearCombinationPresentationSmoke(Scene):
         moving_group = VGroup(presentation, labels)
         equation_callout = build_linear_combination_equation_callout()
         prediction_prompt = build_linear_combination_prediction_prompt()
+        reflection_callout = (
+            build_linear_combination_post_sweep_reflection_callout()
+        )
 
         self.play(FadeIn(plane), FadeIn(title))
         # Keep the synchronized family intact.  Animating ``labels`` as a
@@ -336,4 +365,5 @@ class LinearCombinationPresentationSmoke(Scene):
             pipeline.display_path,
             1.0,
         )
-        self.wait(1.0)
+        self.play(FadeIn(reflection_callout, shift=0.12 * UP))
+        self.wait(1.5)

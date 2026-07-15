@@ -43,8 +43,12 @@ class ManimLinearCombinationLabels(VGroup):
     resultant_label:
         TeX string for the resultant label.
     term_label_offset:
-        Constant two- or three-dimensional display-space offset from each term
-        segment midpoint.
+        Shared two- or three-dimensional display-space offset from every term
+        segment midpoint.  This remains the backward-compatible default.
+    term_label_offsets:
+        Optional per-term display-space offsets in term order.  When supplied,
+        these override ``term_label_offset`` for positioning while preserving
+        the shared offset as a backward-compatible configuration value.
     resultant_label_offset:
         Constant two- or three-dimensional display-space offset from the
         resultant segment midpoint.
@@ -66,6 +70,7 @@ class ManimLinearCombinationLabels(VGroup):
         term_labels: Sequence[str] | None = None,
         resultant_label: str = r"\mathbf{r}",
         term_label_offset: PointLike = (0.0, 0.25, 0.0),
+        term_label_offsets: Sequence[PointLike] | None = None,
         resultant_label_offset: PointLike = (0.0, -0.25, 0.0),
         label_kwargs: Mapping[str, Any] | None = None,
     ) -> None:
@@ -81,6 +86,11 @@ class ManimLinearCombinationLabels(VGroup):
             name="resultant_label",
         )
         term_offset = _manim_offset(term_label_offset, name="term_label_offset")
+        resolved_term_offsets = _term_offsets(
+            term_label_offsets,
+            term_count=len(term_anchors),
+            fallback=term_offset,
+        )
         resultant_offset = _manim_offset(
             resultant_label_offset,
             name="resultant_label_offset",
@@ -102,6 +112,7 @@ class ManimLinearCombinationLabels(VGroup):
         self._term_label_sources = term_label_sources
         self._resultant_label_source = resultant_label_source
         self._term_label_offset = term_offset
+        self._term_label_offsets = resolved_term_offsets
         self._resultant_label_offset = resultant_offset
         self._term_count = len(term_anchors)
         self._display_dimension = display_dimension
@@ -164,6 +175,12 @@ class ManimLinearCombinationLabels(VGroup):
         return self._term_label_offset.copy()
 
     @property
+    def term_label_offsets(self) -> tuple[np.ndarray, ...]:
+        """Return copies of the resolved per-term three-dimensional offsets."""
+
+        return tuple(offset.copy() for offset in self._term_label_offsets)
+
+    @property
     def resultant_label_offset(self) -> np.ndarray:
         """Return a copy of the three-dimensional resultant-label offset."""
 
@@ -204,7 +221,12 @@ class ManimLinearCombinationLabels(VGroup):
         resultant_anchor: np.ndarray,
     ) -> None:
         term_positions = tuple(
-            anchor + self._term_label_offset for anchor in term_anchors
+            anchor + offset
+            for anchor, offset in zip(
+                term_anchors,
+                self._term_label_offsets,
+                strict=True,
+            )
         )
         resultant_position = resultant_anchor + self._resultant_label_offset
 
@@ -288,6 +310,32 @@ def _manim_offset(value: PointLike, *, name: str) -> np.ndarray:
         raise ValueError(f"{name} must contain only finite values")
 
     return _manim_point(offset)
+
+
+def _term_offsets(
+    values: Sequence[PointLike] | None,
+    *,
+    term_count: int,
+    fallback: np.ndarray,
+) -> tuple[np.ndarray, ...]:
+    """Return validated per-term Manim-space offsets in term order."""
+
+    if values is None:
+        return tuple(fallback.copy() for _ in range(term_count))
+    if isinstance(values, (str, bytes)):
+        raise TypeError("term_label_offsets must be a sequence of points")
+
+    supplied = tuple(values)
+    if len(supplied) != term_count:
+        raise ValueError(
+            "term_label_offsets length must match the display term count: "
+            f"expected {term_count}, received {len(supplied)}"
+        )
+
+    return tuple(
+        _manim_offset(value, name=f"term_label_offsets[{index}]")
+        for index, value in enumerate(supplied)
+    )
 
 
 def _term_label_sources(

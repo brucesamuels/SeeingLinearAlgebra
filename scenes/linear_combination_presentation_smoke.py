@@ -1,14 +1,16 @@
 """Smoke scene for the reusable linear-combination presentation composite.
 
-Checkpoint 24 refactors the complete Checkpoint 22 presentation scene to use
-:class:`ManimLinearCombinationPresentation`.  The completed resultant trace
-remains an independent fixed adapter.  Each animation frame requests exactly
-one ``LinearCombinationGeometryDisplaySnapshot`` and passes that complete
-snapshot to the reusable moving presentation composite.
+Checkpoint 26 integrates the reusable :class:`ManimLinearCombinationLabels`
+adapter as a scene-level sibling of :class:`ManimLinearCombinationPresentation`.
+The completed resultant trace remains an independent fixed adapter.  Each
+animation frame requests exactly one
+``LinearCombinationGeometryDisplaySnapshot`` and passes that same object to the
+moving presentation composite and the moving labels.
 
 No coefficient interpolation, vector arithmetic, tip-to-tail construction,
-trace construction, display projection, or child-adapter synchronization is
-reproduced in this scene.
+trace construction, display projection, or adapter-internal geometry is
+reproduced in this scene.  Label appearance remains scene-level pedagogical
+sequencing rather than adapter behavior.
 """
 
 from __future__ import annotations
@@ -29,7 +31,8 @@ from manim import (
     Scene,
     Text,
     UP,
-    UpdateFromAlphaFunc,
+    VGroup,
+    ValueTracker,
     linear,
 )
 
@@ -44,6 +47,7 @@ from engine.linear_combination_trace import LinearCombinationTrace
 from engine.linear_combination_trace_display import (
     LinearCombinationTraceDisplayAdapter,
 )
+from engine.manim_linear_combination_labels import ManimLinearCombinationLabels
 from engine.manim_linear_combination_presentation import (
     ManimLinearCombinationPresentation,
 )
@@ -68,6 +72,13 @@ TRACE_PROGRESS_VALUES = np.linspace(
     dtype=float,
 )
 TRACE_PROGRESS_VALUES.setflags(write=False)
+SMOKE_TERM_LABELS = (r"a\mathbf{u}", r"b\mathbf{v}")
+SMOKE_TERM_LABEL_OFFSETS = (
+    (-0.18, 0.34),
+    (0.34, 0.20),
+)
+SMOKE_RESULTANT_LABEL = r"\mathbf{w}"
+SMOKE_RESULTANT_LABEL_OFFSET = (0.0, -0.30)
 
 
 @dataclass(frozen=True)
@@ -138,6 +149,50 @@ def update_linear_combination_presentation(
     return presentation
 
 
+def update_labeled_linear_combination_presentation(
+    presentation: ManimLinearCombinationPresentation,
+    labels: ManimLinearCombinationLabels,
+    display_path: LinearCombinationGeometryDisplayAdapter,
+    progress: float,
+) -> ManimLinearCombinationPresentation:
+    """Update presentation and labels from one exact display snapshot.
+
+    Both established adapters validate the complete incoming structure before
+    mutating their own fixed Manim children.  Because both were constructed
+    from the same initial display snapshot, their term count and display
+    dimension invariants agree for the lifetime of this scene-level group.
+    """
+
+    display_snapshot = display_path.snapshot(progress)
+    presentation.update_from_snapshot(display_snapshot)
+    labels.update_from_snapshot(display_snapshot)
+    return presentation
+
+
+def update_labeled_linear_combination_from_tracker(
+    moving_group: VGroup,
+    presentation: ManimLinearCombinationPresentation,
+    labels: ManimLinearCombinationLabels,
+    display_path: LinearCombinationGeometryDisplayAdapter,
+    progress_tracker: ValueTracker,
+) -> VGroup:
+    """Synchronize the complete moving group from a scene-owned tracker.
+
+    Attaching this function as a mobject updater makes the presentation and
+    labels one explicitly moving Cairo-rendered family.  The tracker owns only
+    scene timing; the display path continues to own interpolation, mathematics,
+    geometry, and projection.
+    """
+
+    update_labeled_linear_combination_presentation(
+        presentation,
+        labels,
+        display_path,
+        float(progress_tracker.get_value()),
+    )
+    return moving_group
+
+
 class LinearCombinationPresentationSmoke(Scene):
     """Show trace and the reusable moving presentation in one frame."""
 
@@ -188,19 +243,55 @@ class LinearCombinationPresentationSmoke(Scene):
         presentation.readout.to_corner(UR)
         presentation.readout.shift(0.80 * DOWN + 0.20 * LEFT)
 
+        labels = ManimLinearCombinationLabels(
+            initial_display_snapshot,
+            term_labels=SMOKE_TERM_LABELS,
+            resultant_label=SMOKE_RESULTANT_LABEL,
+            term_label_offsets=SMOKE_TERM_LABEL_OFFSETS,
+            resultant_label_offset=SMOKE_RESULTANT_LABEL_OFFSET,
+            label_kwargs={"font_size": 28},
+        )
+        for label, color in zip(
+            labels.term_label_mobjects,
+            (BLUE_C, GREEN_C),
+            strict=True,
+        ):
+            label.set_color(color)
+        labels.resultant_label_mobject.set_color(YELLOW)
+
+        moving_group = VGroup(presentation, labels)
+
         self.play(FadeIn(plane), FadeIn(title))
-        self.play(FadeIn(trace), FadeIn(presentation))
+        # Keep the synchronized family intact.  Animating ``labels`` as a
+        # separate child after adding ``moving_group`` would cause Manim to
+        # dissolve the parent group while extracting that child animation.
+        self.play(FadeIn(trace), FadeIn(moving_group))
         self.wait(0.25)
-        self.play(
-            UpdateFromAlphaFunc(
+
+        progress_tracker = ValueTracker(0.0)
+        moving_group.add_updater(
+            lambda mobject: update_labeled_linear_combination_from_tracker(
+                mobject,
                 presentation,
-                lambda mobject, alpha: update_linear_combination_presentation(
-                    mobject,
-                    pipeline.display_path,
-                    alpha,
-                ),
-            ),
+                labels,
+                pipeline.display_path,
+                progress_tracker,
+            )
+        )
+        self.add(progress_tracker)
+        self.play(
+            progress_tracker.animate.set_value(1.0),
             run_time=4.0,
             rate_func=linear,
+        )
+        moving_group.clear_updaters()
+        self.remove(progress_tracker)
+
+        # Pin the exact endpoint after removing the continual updater.
+        update_labeled_linear_combination_presentation(
+            presentation,
+            labels,
+            pipeline.display_path,
+            1.0,
         )
         self.wait(1.0)

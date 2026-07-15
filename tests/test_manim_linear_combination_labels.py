@@ -415,3 +415,65 @@ def test_label_options_must_be_a_mapping_and_cannot_replace_text() -> None:
             snapshot,
             label_kwargs={"tex_strings": (r"x",)},
         )
+
+
+def test_per_term_offsets_override_shared_offset_in_term_order() -> None:
+    snapshot = _display_path().snapshot(0.7)
+    supplied_offsets = [(-0.2, 0.35), (0.4, 0.15, 0.0)]
+
+    labels = ManimLinearCombinationLabels(
+        snapshot,
+        term_label_offset=(9.0, 9.0),
+        term_label_offsets=supplied_offsets,
+    )
+
+    supplied_offsets.append((0.0, 0.0))
+
+    np.testing.assert_allclose(labels.term_label_offset, [9.0, 9.0, 0.0])
+    resolved = labels.term_label_offsets
+    np.testing.assert_allclose(resolved[0], [-0.2, 0.35, 0.0])
+    np.testing.assert_allclose(resolved[1], [0.4, 0.15, 0.0])
+
+    term_segments = np.asarray(snapshot.display_term_segments, dtype=float)
+    expected_term_centers = tuple(
+        np.array([*np.mean(segment, axis=0), 0.0]) + offset
+        for segment, offset in zip(term_segments, resolved, strict=True)
+    )
+    for actual, expected in zip(
+        _centers(labels)[:-1],
+        expected_term_centers,
+        strict=True,
+    ):
+        np.testing.assert_allclose(actual, expected)
+
+
+def test_default_per_term_offsets_repeat_the_shared_offset() -> None:
+    labels = ManimLinearCombinationLabels(
+        _display_path().snapshot(0.3),
+        term_label_offset=(0.15, -0.2),
+    )
+
+    assert len(labels.term_label_offsets) == labels.term_count
+    for offset in labels.term_label_offsets:
+        np.testing.assert_allclose(offset, [0.15, -0.2, 0.0])
+
+
+@pytest.mark.parametrize(
+    ("offsets", "exception_type", "message"),
+    [
+        ([(0.0, 0.2)], ValueError, "length"),
+        ([(0.0, 0.2), (0.0,)], ValueError, "2 or 3"),
+        ([(0.0, 0.2), (np.nan, 0.1)], ValueError, "finite"),
+        ("not-points", TypeError, "sequence of points"),
+    ],
+)
+def test_invalid_per_term_offsets_are_rejected_before_mobject_creation(
+    offsets: object,
+    exception_type: type[Exception],
+    message: str,
+) -> None:
+    with pytest.raises(exception_type, match=message):
+        ManimLinearCombinationLabels(
+            _display_path().snapshot(0.0),
+            term_label_offsets=offsets,  # type: ignore[arg-type]
+        )

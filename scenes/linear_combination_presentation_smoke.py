@@ -1,15 +1,15 @@
 """Smoke scene for the reusable linear-combination presentation composite.
 
-Checkpoint 28 integrates the reusable :class:`ManimEquationCallout` as a
-fixed scene-level sibling of the existing labeled moving presentation.  The
-completed resultant trace remains an independent fixed adapter.  Each animation
-frame requests exactly one ``LinearCombinationGeometryDisplaySnapshot`` and
-passes that same object to the moving presentation composite and moving labels.
+Checkpoint 29 adds one brief pre-sweep prediction beat through the established
+:func:`engine.scene_tools.pause_and_predict` helper.  The prompt remains a
+temporary scene-level overlay; the equation callout and completed resultant
+trace remain fixed siblings, while the presentation and labels remain the only
+tracker-driven family.
 
 No coefficient interpolation, vector arithmetic, tip-to-tail construction,
 trace construction, display projection, equation derivation, or adapter-internal
-geometry is reproduced in this scene.  Callout placement and appearance remain
-scene-level pedagogical sequencing.
+geometry is reproduced in this scene.  Prompt text, placement, appearance, and
+pause duration remain scene-level pedagogical sequencing.
 """
 
 from __future__ import annotations
@@ -28,6 +28,7 @@ from manim import (
     UR,
     YELLOW,
     FadeIn,
+    FadeOut,
     NumberPlane,
     Scene,
     Text,
@@ -55,6 +56,7 @@ from engine.manim_linear_combination_presentation import (
 )
 from engine.manim_linear_combination_trace import ManimLinearCombinationTrace
 from engine.rank_collapse_display import LinearDisplayProjector
+from engine.scene_tools import pause_and_predict
 
 
 SMOKE_VECTORS = np.array(
@@ -74,15 +76,29 @@ TRACE_PROGRESS_VALUES = np.linspace(
     dtype=float,
 )
 TRACE_PROGRESS_VALUES.setflags(write=False)
-SMOKE_TERM_LABELS = (r"a\mathbf{u}", r"b\mathbf{v}")
+SMOKE_TERM_LABELS = (r"a\,\mathbf{u}", r"b\,\mathbf{v}")
 SMOKE_TERM_LABEL_OFFSETS = (
     (-0.18, 0.34),
     (0.34, 0.20),
 )
 SMOKE_RESULTANT_LABEL = r"\mathbf{w}"
 SMOKE_RESULTANT_LABEL_OFFSET = (0.0, -0.30)
-SMOKE_EQUATION = r"\mathbf{w}=a\mathbf{u}+b\mathbf{v}"
+SMOKE_EQUATION = r"\mathbf{w}=a\,\mathbf{u}+b\,\mathbf{v}"
 SMOKE_EQUATION_CAPTION = "Scale first, then add tip to tail."
+SMOKE_PREDICTION_PROMPT = (
+    "Where should the second scaled vector begin\n"
+    "in a tip-to-tail sum?"
+)
+
+
+def build_linear_combination_prediction_prompt() -> VGroup:
+    """Build and place the brief pre-sweep prediction prompt."""
+
+    prompt = pause_and_predict(SMOKE_PREDICTION_PROMPT)
+    prompt.scale(0.78)
+    prompt.to_edge(LEFT)
+    prompt.shift(0.75 * UP + 0.25 * RIGHT)
+    return prompt
 
 
 def build_linear_combination_equation_callout() -> ManimEquationCallout:
@@ -282,6 +298,7 @@ class LinearCombinationPresentationSmoke(Scene):
 
         moving_group = VGroup(presentation, labels)
         equation_callout = build_linear_combination_equation_callout()
+        prediction_prompt = build_linear_combination_prediction_prompt()
 
         self.play(FadeIn(plane), FadeIn(title))
         # Keep the synchronized family intact.  Animating ``labels`` as a
@@ -289,7 +306,9 @@ class LinearCombinationPresentationSmoke(Scene):
         # dissolve the parent group while extracting that child animation.
         self.play(FadeIn(trace), FadeIn(moving_group))
         self.play(FadeIn(equation_callout))
-        self.wait(0.25)
+        self.play(FadeIn(prediction_prompt, shift=0.12 * UP))
+        self.wait(1.5)
+        self.play(FadeOut(prediction_prompt, shift=0.12 * UP))
 
         progress_tracker = ValueTracker(0.0)
         moving_group.add_updater(

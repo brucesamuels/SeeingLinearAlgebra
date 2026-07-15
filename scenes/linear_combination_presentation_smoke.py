@@ -1,15 +1,14 @@
-"""Smoke scene for the complete linear-combination presentation pipeline.
+"""Smoke scene for the reusable linear-combination presentation composite.
 
-Checkpoint 22 composes the established completed resultant trace, moving
-linear-combination arrows, and synchronized coefficient/result readout in one
-lesson-like frame.  The trace is sampled and projected once upstream.  Each
-animation frame then requests exactly one
-``LinearCombinationGeometryDisplaySnapshot``; the arrow adapter consumes its
-projected geometry and the readout consumes its exact retained mathematical
-snapshot.
+Checkpoint 24 refactors the complete Checkpoint 22 presentation scene to use
+:class:`ManimLinearCombinationPresentation`.  The completed resultant trace
+remains an independent fixed adapter.  Each animation frame requests exactly
+one ``LinearCombinationGeometryDisplaySnapshot`` and passes that complete
+snapshot to the reusable moving presentation composite.
 
 No coefficient interpolation, vector arithmetic, tip-to-tail construction,
-trace construction, or display projection is reproduced in this scene.
+trace construction, display projection, or child-adapter synchronization is
+reproduced in this scene.
 """
 
 from __future__ import annotations
@@ -31,7 +30,6 @@ from manim import (
     Text,
     UP,
     UpdateFromAlphaFunc,
-    VGroup,
     linear,
 )
 
@@ -46,11 +44,8 @@ from engine.linear_combination_trace import LinearCombinationTrace
 from engine.linear_combination_trace_display import (
     LinearCombinationTraceDisplayAdapter,
 )
-from engine.manim_linear_combination_geometry import (
-    ManimLinearCombinationGeometry,
-)
-from engine.manim_linear_combination_readout import (
-    ManimLinearCombinationReadout,
+from engine.manim_linear_combination_presentation import (
+    ManimLinearCombinationPresentation,
 )
 from engine.manim_linear_combination_trace import ManimLinearCombinationTrace
 from engine.rank_collapse_display import LinearDisplayProjector
@@ -128,26 +123,23 @@ def build_linear_combination_presentation_smoke_pipeline(
 
 
 def update_linear_combination_presentation(
-    mobject: VGroup,
-    arrows: ManimLinearCombinationGeometry,
-    readout: ManimLinearCombinationReadout,
+    presentation: ManimLinearCombinationPresentation,
     display_path: LinearCombinationGeometryDisplayAdapter,
     progress: float,
-) -> VGroup:
-    """Update moving presentation components from one shared frame snapshot.
+) -> ManimLinearCombinationPresentation:
+    """Update the reusable moving composite from one shared frame snapshot.
 
-    The completed trace is deliberately absent from this helper because its
-    fixed line mobjects are constructed once and remain unchanged.
+    The completed trace is deliberately absent because its fixed line mobjects
+    are constructed once and remain unchanged.
     """
 
     display_snapshot = display_path.snapshot(progress)
-    arrows.update_from_snapshot(display_snapshot)
-    readout.update_from_snapshot(display_snapshot.linear_combination_snapshot)
-    return mobject
+    presentation.update_from_snapshot(display_snapshot)
+    return presentation
 
 
 class LinearCombinationPresentationSmoke(Scene):
-    """Show trace, moving arrows, and readout in one synchronized frame."""
+    """Show trace and the reusable moving presentation in one frame."""
 
     def construct(self) -> None:
         plane = NumberPlane(
@@ -171,42 +163,39 @@ class LinearCombinationPresentationSmoke(Scene):
         trace.set_color(ORANGE)
         trace.set_opacity(0.70)
 
-        arrows = ManimLinearCombinationGeometry(
+        presentation = ManimLinearCombinationPresentation(
             initial_display_snapshot,
-            term_arrow_kwargs={"stroke_width": 6.0},
-            resultant_arrow_kwargs={"stroke_width": 8.0},
+            geometry_kwargs={
+                "term_arrow_kwargs": {"stroke_width": 6.0},
+                "resultant_arrow_kwargs": {"stroke_width": 8.0},
+            },
+            readout_kwargs={
+                "num_decimal_places": 2,
+                "include_sign": True,
+                "label_kwargs": {"font_size": 30},
+                "matrix_kwargs": {"v_buff": 0.35, "h_buff": 0.55},
+            },
         )
         for arrow, color in zip(
-            arrows.term_arrows,
+            presentation.geometry.term_arrows,
             (BLUE_C, GREEN_C),
             strict=True,
         ):
             arrow.set_color(color)
-        arrows.resultant_arrow.set_color(YELLOW)
+        presentation.geometry.resultant_arrow.set_color(YELLOW)
 
-        readout = ManimLinearCombinationReadout(
-            initial_display_snapshot.linear_combination_snapshot,
-            num_decimal_places=2,
-            include_sign=True,
-            label_kwargs={"font_size": 30},
-            matrix_kwargs={"v_buff": 0.35, "h_buff": 0.55},
-        )
-        readout.scale(0.72)
-        readout.to_corner(UR)
-        readout.shift(0.80 * DOWN + 0.20 * LEFT)
-
-        animated_mobjects = VGroup(arrows, readout)
+        presentation.readout.scale(0.72)
+        presentation.readout.to_corner(UR)
+        presentation.readout.shift(0.80 * DOWN + 0.20 * LEFT)
 
         self.play(FadeIn(plane), FadeIn(title))
-        self.play(FadeIn(trace), FadeIn(animated_mobjects))
+        self.play(FadeIn(trace), FadeIn(presentation))
         self.wait(0.25)
         self.play(
             UpdateFromAlphaFunc(
-                animated_mobjects,
+                presentation,
                 lambda mobject, alpha: update_linear_combination_presentation(
                     mobject,
-                    arrows,
-                    readout,
                     pipeline.display_path,
                     alpha,
                 ),

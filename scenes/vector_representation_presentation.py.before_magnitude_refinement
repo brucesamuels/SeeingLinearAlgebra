@@ -1,0 +1,89 @@
+"""Presentation scene for the introductory lesson: What Is a Vector?"""
+
+from __future__ import annotations
+
+from manim import (
+    Create,
+    FadeIn,
+    FadeOut,
+    LEFT,
+    Scene,
+    Text,
+    UP,
+    VGroup,
+    Write,
+)
+
+from engine.manim_vector_representation_display import (
+    ManimVectorRepresentationDisplay,
+)
+from engine.vector_representation import VectorRepresentation
+from engine.vector_representation_display import (
+    VectorRepresentationDisplayProjector,
+)
+from engine.vector_representation_lesson import (
+    VECTOR_REPRESENTATION_LESSON_SEQUENCE,
+)
+
+
+class VectorRepresentationPresentation(Scene):
+    """Teach equivalent geometric and coordinate views of one vector."""
+
+    LESSON_SEQUENCE = VECTOR_REPRESENTATION_LESSON_SEQUENCE
+
+    def construct(self) -> None:
+        title = Text("What Is a Vector?").scale(0.8).to_edge(UP)
+
+        mathematical_snapshot = VectorRepresentation([3.0, 2.0]).snapshot()
+        display_snapshot = VectorRepresentationDisplayProjector(
+            display_dimension=2,
+            number_format=".1f",
+            magnitude_label="length",
+        ).project(mathematical_snapshot)
+
+        display = ManimVectorRepresentationDisplay(display_snapshot)
+        display.shift(0.5 * LEFT)
+
+        prompt = Text(
+            "Which coordinates describe this displacement?"
+        ).scale(0.55)
+        prompt.next_to(title, direction=[0.0, -1.0, 0.0], buff=0.35)
+
+        equivalence = Text(
+            "One vector, several equivalent representations"
+        ).scale(0.55)
+        equivalence.next_to(title, direction=[0.0, -1.0, 0.0], buff=0.35)
+
+        reflection = VGroup(
+            Text("The arrow shows direction and length.").scale(0.48),
+            Text("The coordinates encode the same vector.").scale(0.48),
+        ).arrange(direction=[0.0, -1.0, 0.0], buff=0.2)
+        reflection.to_edge([0.0, -1.0, 0.0])
+
+        self.play(Write(title))
+
+        # ORIENT
+        self.play(Create(display.arrow))
+        self.wait(0.5)
+
+        # PREDICT
+        self.play(FadeIn(prompt))
+        self.wait(1.0)
+        self.play(FadeOut(prompt))
+
+        # OBSERVE
+        self.play(FadeIn(display.row_coordinates))
+        self.play(FadeIn(display.column_coordinates))
+        self.play(FadeIn(equivalence))
+        self.wait(0.75)
+
+        # STABILIZE
+        self.play(
+            FadeIn(display.magnitude_label),
+            FadeIn(display.dimension_label),
+        )
+        self.wait(0.75)
+
+        # REFLECT
+        self.play(FadeOut(equivalence), FadeIn(reflection))
+        self.wait(1.0)

@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+import inspect
+
+from scenes.vector_representation_presentation import (
+    VectorRepresentationPresentation,
+)
+
+
+def test_scene_constructs_component_triangle() -> None:
+    source = inspect.getsource(VectorRepresentationPresentation.construct)
+
+    assert "DashedLine" in source
+    assert "horizontal_leg" in source
+    assert "vertical_leg" in source
+    assert "horizontal_label" in source
+    assert "vertical_label" in source
+
+
+def test_scene_builds_magnitude_from_pythagorean_theorem() -> None:
+    source = inspect.getsource(VectorRepresentationPresentation.construct)
+
+    assert r"\|\mathbf{v}\|=\sqrt{3^2+2^2}" in source
+    assert r"=\sqrt{13}" in source
+    assert r"\approx 3.6" in source
+
+
+def test_scene_reveals_magnitude_in_stages() -> None:
+    source = inspect.getsource(VectorRepresentationPresentation.construct)
+
+    assert "Write(magnitude_derivation[0])" in source
+    assert "Write(magnitude_derivation[1])" in source
+    assert "Write(magnitude_derivation[2])" in source
+
+
+def test_scene_still_uses_existing_vector_pipeline() -> None:
+    source = inspect.getsource(VectorRepresentationPresentation.construct)
+
+    assert "VectorRepresentation(" in source
+    assert "VectorRepresentationDisplayProjector(" in source
+    assert "ManimVectorRepresentationDisplay(" in source

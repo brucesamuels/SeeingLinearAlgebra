@@ -14,6 +14,7 @@ from engine.rank_collapse_geometry_display import (
 )
 from engine.rank_collapse_geometry_path import RankCollapseGeometryPath
 from manim_adapters.rank_collapse_geometry import ManimRankCollapseGeometry
+from engine.rank_collapse_lesson_sequence import RANK_COLLAPSE_LESSON_SEQUENCE
 
 
 def square_grid_geometry(
@@ -47,6 +48,8 @@ def square_grid_geometry(
 
 
 class RankCollapseGeometrySmoke(Scene):
+    LESSON_SEQUENCE = RANK_COLLAPSE_LESSON_SEQUENCE
+
     def construct(self) -> None:
         geometry = square_grid_geometry()
         collapse = RankCollapse(np.eye(2), target_rank=1)

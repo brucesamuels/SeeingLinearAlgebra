@@ -38,6 +38,7 @@ from scenes.linear_combination_native_3d_smoke import (
     SMOKE_VECTORS,
     _parallelepiped_edges,
 )
+from engine.full_rank_3d_lesson_sequence import FULL_RANK_3D_LESSON_SEQUENCE
 
 
 VECTOR_COLORS = (BLUE, GREEN, PURPLE)
@@ -132,6 +133,8 @@ def _dynamic_arrow(
 
 
 class FullRankLinearCombination3DPresentation(ThreeDScene):
+    LESSON_SEQUENCE = FULL_RANK_3D_LESSON_SEQUENCE
+
     """Present three independently scaled columns of a full-rank matrix."""
 
     def construct(self) -> None:

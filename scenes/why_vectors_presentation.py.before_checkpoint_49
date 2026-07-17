@@ -11,37 +11,39 @@ from manim import (
     MathTex,
     ORIGIN,
     Scene,
+    Text,
     VGroup,
     Write,
 )
 
-from engine.manim_instructional_widgets import ThemedText
 from engine.manim_lesson_layout import LessonLayout
-from engine.manim_lesson_theme import SEEING_LINEAR_ALGEBRA_THEME
 from engine.manim_perspective_pictograms import PerspectivePictogramFactory
 from engine.why_vectors_content import WHY_VECTORS_SEQUENCE
 
 
 class WhyVectorsPresentation(Scene):
-    THEME = SEEING_LINEAR_ALGEBRA_THEME
     LAYOUT = LessonLayout()
 
+    PERSPECTIVE_HEADING_PAUSE = 0.7
+    EXAMPLE_REVEAL_PAUSE = 0.55
+    TAKEAWAY_PAUSE = 1.4
+    SYNTHESIS_PAUSE = 1.4
+    BRIDGE_PAUSE = 1.2
+
     def construct(self) -> None:
-        title = ThemedText.lesson_title(
-            WHY_VECTORS_SEQUENCE.title,
-            theme=self.THEME,
+        title = Text(WHY_VECTORS_SEQUENCE.title).scale(
+            self.LAYOUT.title_scale
         )
         self.LAYOUT.place_title(title)
 
-        guiding_question = ThemedText.guiding_question(
-            WHY_VECTORS_SEQUENCE.guiding_question,
-            theme=self.THEME,
-        )
+        guiding_question = Text(
+            WHY_VECTORS_SEQUENCE.guiding_question
+        ).scale(self.LAYOUT.question_scale)
         self.LAYOUT.place_question(guiding_question)
 
         self.play(Write(title))
         self.play(FadeIn(guiding_question))
-        self.wait(self.THEME.timing.transition)
+        self.wait(0.8)
 
         for perspective in WHY_VECTORS_SEQUENCE.perspectives:
             heading, question, example_rows, pictograms, takeaway = (
@@ -49,20 +51,17 @@ class WhyVectorsPresentation(Scene):
             )
 
             self.play(FadeIn(heading), FadeIn(question))
-            self.wait(self.THEME.timing.normal)
+            self.wait(self.PERSPECTIVE_HEADING_PAUSE)
 
             for row, pictogram in zip(example_rows, pictograms):
                 label = row[1]
                 self.play(FadeIn(label), FadeIn(pictogram.group))
                 for part in pictogram.animated_parts:
-                    self.play(
-                        Create(part),
-                        run_time=self.THEME.timing.quick,
-                    )
-                self.wait(self.THEME.timing.normal)
+                    self.play(Create(part), run_time=0.35)
+                self.wait(self.EXAMPLE_REVEAL_PAUSE)
 
             self.play(FadeIn(takeaway))
-            self.wait(self.THEME.timing.reflection)
+            self.wait(self.TAKEAWAY_PAUSE)
 
             self.play(
                 FadeOut(
@@ -81,9 +80,9 @@ class WhyVectorsPresentation(Scene):
             FadeIn(VGroup(*synthesis[:5])),
             *[FadeIn(connector) for connector in connectors],
         )
-        self.wait(self.THEME.timing.transition)
+        self.wait(0.9)
         self.play(FadeIn(synthesis[5]))
-        self.wait(self.THEME.timing.reflection)
+        self.wait(self.SYNTHESIS_PAUSE)
 
         self.play(
             FadeOut(connectors),
@@ -91,44 +90,35 @@ class WhyVectorsPresentation(Scene):
             FadeOut(guiding_question),
         )
 
-        bridge_question = ThemedText.guiding_question(
-            WHY_VECTORS_SEQUENCE.bridge_question,
-            theme=self.THEME,
-        )
+        bridge_question = Text(
+            WHY_VECTORS_SEQUENCE.bridge_question
+        ).scale(self.LAYOUT.question_scale)
         self.LAYOUT.place_question(bridge_question)
 
-        bridge_statement = ThemedText.footer(
-            WHY_VECTORS_SEQUENCE.bridge_statement,
-            theme=self.THEME,
-        )
+        bridge_statement = Text(
+            WHY_VECTORS_SEQUENCE.bridge_statement
+        ).scale(self.LAYOUT.footer_scale)
         self.LAYOUT.place_footer(bridge_statement)
 
         geometric_arrow = Arrow(
             start=ORIGIN,
             end=[3.0, 1.5, 0.0],
             buff=0.0,
-            color=self.THEME.colors.geometry,
         )
 
         origin_label = MathTex("(0,0)").scale(0.65)
         origin_label.next_to(geometric_arrow.get_start(), DOWN)
 
         self.play(FadeIn(bridge_question))
-        self.wait(self.THEME.timing.read)
+        self.wait(self.BRIDGE_PAUSE)
         self.play(FadeIn(bridge_statement))
-        self.wait(self.THEME.timing.normal)
+        self.wait(0.6)
         self.play(Write(geometric_arrow), FadeIn(origin_label))
-        self.wait(self.THEME.timing.read)
+        self.wait(1.5)
 
     def _perspective_parts(self, perspective):
-        heading = ThemedText.perspective_title(
-            perspective.title,
-            theme=self.THEME,
-        )
-        question = ThemedText.body(
-            perspective.question,
-            theme=self.THEME,
-        )
+        heading = Text(perspective.title).scale(0.66)
+        question = Text(perspective.question).scale(0.45)
 
         pictograms = tuple(
             PerspectivePictogramFactory.build(example)
@@ -139,7 +129,7 @@ class WhyVectorsPresentation(Scene):
             *[
                 VGroup(
                     pictogram.group,
-                    ThemedText.body(example, theme=self.THEME),
+                    Text(example).scale(0.40),
                 ).arrange([1.0, 0.0, 0.0], buff=0.22)
                 for example, pictogram in zip(
                     perspective.examples,
@@ -152,10 +142,7 @@ class WhyVectorsPresentation(Scene):
             buff=0.14,
         )
 
-        takeaway = ThemedText.takeaway(
-            perspective.takeaway,
-            theme=self.THEME,
-        )
+        takeaway = Text(perspective.takeaway).scale(0.46)
 
         content = VGroup(
             heading,
@@ -174,15 +161,12 @@ class WhyVectorsPresentation(Scene):
 
     def _synthesis_group(self):
         synthesis = VGroup(
-            ThemedText.body("Physics", theme=self.THEME),
-            ThemedText.body("Computer Science", theme=self.THEME),
-            ThemedText.body("Engineering", theme=self.THEME),
-            ThemedText.body("Mathematics", theme=self.THEME),
-            ThemedText.perspective_title("VECTOR", theme=self.THEME),
-            ThemedText.takeaway(
-                WHY_VECTORS_SEQUENCE.synthesis,
-                theme=self.THEME,
-            ),
+            Text("Physics").scale(0.5),
+            Text("Computer Science").scale(0.5),
+            Text("Engineering").scale(0.5),
+            Text("Mathematics").scale(0.5),
+            Text("VECTOR").scale(0.72),
+            Text(WHY_VECTORS_SEQUENCE.synthesis).scale(0.5),
         )
 
         synthesis[0].move_to([-4.2, 1.3, 0.0])

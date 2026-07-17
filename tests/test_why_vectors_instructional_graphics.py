@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+import inspect
+
+from scenes.why_vectors_presentation import WhyVectorsPresentation
+
+
+def test_scene_animates_pictogram_parts() -> None:
+    source = inspect.getsource(WhyVectorsPresentation.construct)
+
+    assert "for row, pictogram in zip(example_rows, pictograms):" in source
+    assert "for part in pictogram.animated_parts:" in source
+    assert "self.play(Create(part), run_time=0.35)" in source
+
+
+def test_perspective_parts_returns_pictogram_metadata() -> None:
+    source = inspect.getsource(WhyVectorsPresentation._perspective_parts)
+
+    assert "PerspectivePictogramFactory.build(example)" in source
+    assert "return heading, question, example_rows, pictograms, takeaway" in source

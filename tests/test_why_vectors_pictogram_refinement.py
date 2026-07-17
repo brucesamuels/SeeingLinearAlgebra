@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+import inspect
+
+from scenes.why_vectors_presentation import WhyVectorsPresentation
+
+
+def test_scene_uses_pictogram_factory() -> None:
+    source = inspect.getsource(WhyVectorsPresentation._perspective_parts)
+
+    assert "PerspectivePictogramFactory.build(example)" in source
+
+
+def test_each_application_is_grouped_with_its_graphic() -> None:
+    source = inspect.getsource(WhyVectorsPresentation._perspective_parts)
+
+    assert "VGroup(" in source
+    assert "Text(example)" in source
+    assert ".arrange([1.0, 0.0, 0.0]" in source

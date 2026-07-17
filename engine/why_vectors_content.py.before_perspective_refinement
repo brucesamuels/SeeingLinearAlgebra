@@ -1,0 +1,11 @@
+from engine.perspective_sequence import Perspective, PerspectiveSequence
+
+WHY_VECTORS_SEQUENCE = PerspectiveSequence(
+    title="Why Vectors?",
+    perspectives=(
+        Perspective("Physicist","How do we describe motion and force?","Vectors have magnitude and direction."),
+        Perspective("Computer Scientist","How do we represent data?","Vectors can be ordered collections of numbers."),
+        Perspective("Mathematician","What operations matter?","Addition and scalar multiplication reveal the common structure."),
+    ),
+    synthesis="Different viewpoints. One mathematical idea."
+)

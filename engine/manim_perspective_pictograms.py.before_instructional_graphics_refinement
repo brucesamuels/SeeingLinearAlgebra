@@ -1,0 +1,177 @@
+"""Reusable minimalist Manim pictograms for instructional perspectives."""
+
+from __future__ import annotations
+
+from manim import (
+    Arc,
+    Arrow,
+    Circle,
+    Dot,
+    Line,
+    MathTex,
+    Polygon,
+    Rectangle,
+    RoundedRectangle,
+    Square,
+    Text,
+    Triangle,
+    VGroup,
+)
+
+
+class PerspectivePictogramFactory:
+    """Construct small renderer-only pictograms from simple Manim primitives."""
+
+    @staticmethod
+    def build(label: str) -> VGroup:
+        builders = {
+            "velocity": PerspectivePictogramFactory._velocity,
+            "force": PerspectivePictogramFactory._force,
+            "acceleration": PerspectivePictogramFactory._acceleration,
+            "gravity": PerspectivePictogramFactory._gravity,
+            "Netflix recommendations": PerspectivePictogramFactory._movie_recommendation,
+            "Spotify suggestions": PerspectivePictogramFactory._music_recommendation,
+            "Google Maps coordinates": PerspectivePictogramFactory._gps,
+            "RGB color values": PerspectivePictogramFactory._rgb,
+            "bridge loads": PerspectivePictogramFactory._bridge,
+            "robot arms": PerspectivePictogramFactory._robot_arm,
+            "aircraft motion": PerspectivePictogramFactory._aircraft,
+            "satellite trajectories": PerspectivePictogramFactory._satellite,
+            "vector addition": PerspectivePictogramFactory._addition,
+            "scalar multiplication": PerspectivePictogramFactory._scalar,
+            "closure under both operations": PerspectivePictogramFactory._closure,
+            "vector spaces": PerspectivePictogramFactory._vector_space,
+        }
+        try:
+            pictogram = builders[label]()
+        except KeyError as exc:
+            raise KeyError(f"unknown perspective pictogram: {label!r}") from exc
+        return pictogram.scale_to_fit_height(0.55)
+
+    @staticmethod
+    def _velocity() -> VGroup:
+        ball = Circle(radius=0.14)
+        arrow = Arrow([-0.1, 0, 0], [0.75, 0, 0], buff=0.02)
+        return VGroup(ball, arrow)
+
+    @staticmethod
+    def _force() -> VGroup:
+        block = Square(side_length=0.32)
+        arrow = Arrow([-0.7, 0, 0], [-0.2, 0, 0], buff=0.02)
+        return VGroup(block, arrow)
+
+    @staticmethod
+    def _acceleration() -> VGroup:
+        dot = Dot()
+        short = Arrow([0.0, 0.0, 0.0], [0.35, 0.0, 0.0], buff=0.02)
+        long = Arrow([0.0, -0.22, 0.0], [0.7, -0.22, 0.0], buff=0.02)
+        return VGroup(dot, short, long)
+
+    @staticmethod
+    def _gravity() -> VGroup:
+        earth = Circle(radius=0.22)
+        falling = Dot([0.0, 0.45, 0.0])
+        arrow = Arrow([0.0, 0.35, 0.0], [0.0, -0.05, 0.0], buff=0.02)
+        return VGroup(earth, falling, arrow)
+
+    @staticmethod
+    def _movie_recommendation() -> VGroup:
+        card = RoundedRectangle(width=0.65, height=0.42, corner_radius=0.06)
+        play = Triangle().scale(0.11).rotate(-1.5708)
+        stars = Text("★★★").scale(0.15).next_to(card, [0, -1, 0], buff=0.05)
+        return VGroup(card, play, stars)
+
+    @staticmethod
+    def _music_recommendation() -> VGroup:
+        note = MathTex(r"\♪").scale(0.8)
+        wave = Arc(radius=0.35, start_angle=-0.8, angle=1.6)
+        return VGroup(note, wave)
+
+    @staticmethod
+    def _gps() -> VGroup:
+        pin = VGroup(Circle(radius=0.14), Triangle().scale(0.12).rotate(3.14159))
+        route = VGroup(
+            Dot([-0.35, -0.2, 0.0], radius=0.04),
+            Line([-0.31, -0.18, 0.0], [0.28, 0.1, 0.0]),
+            Dot([0.32, 0.12, 0.0], radius=0.04),
+        )
+        return VGroup(pin, route)
+
+    @staticmethod
+    def _rgb() -> VGroup:
+        return VGroup(
+            Square(side_length=0.24).shift([-0.26, 0, 0]),
+            Square(side_length=0.24),
+            Square(side_length=0.24).shift([0.26, 0, 0]),
+            Text("RGB").scale(0.18).shift([0, -0.25, 0]),
+        )
+
+    @staticmethod
+    def _bridge() -> VGroup:
+        deck = Line([-0.65, 0.1, 0], [0.65, 0.1, 0])
+        left = Line([-0.55, 0.1, 0], [-0.25, -0.3, 0])
+        right = Line([0.55, 0.1, 0], [0.25, -0.3, 0])
+        load = Arrow([0.0, 0.55, 0.0], [0.0, 0.15, 0.0], buff=0.02)
+        return VGroup(deck, left, right, load)
+
+    @staticmethod
+    def _robot_arm() -> VGroup:
+        base = Rectangle(width=0.35, height=0.15)
+        joint1 = Dot([0.0, 0.12, 0.0], radius=0.06)
+        arm1 = Line([0.0, 0.12, 0.0], [0.32, 0.42, 0.0])
+        joint2 = Dot([0.32, 0.42, 0.0], radius=0.06)
+        arm2 = Line([0.32, 0.42, 0.0], [0.62, 0.18, 0.0])
+        return VGroup(base, joint1, arm1, joint2, arm2)
+
+    @staticmethod
+    def _aircraft() -> VGroup:
+        body = Line([-0.55, 0, 0], [0.55, 0, 0])
+        wings = Line([-0.1, -0.28, 0], [0.1, 0.28, 0])
+        tail = Line([-0.42, -0.15, 0], [-0.42, 0.15, 0])
+        arrow = Arrow([0.25, 0, 0], [0.8, 0, 0], buff=0.02)
+        return VGroup(body, wings, tail, arrow)
+
+    @staticmethod
+    def _satellite() -> VGroup:
+        body = Rectangle(width=0.28, height=0.22)
+        panels = VGroup(
+            Rectangle(width=0.35, height=0.14).shift([-0.34, 0, 0]),
+            Rectangle(width=0.35, height=0.14).shift([0.34, 0, 0]),
+        )
+        orbit = Arc(radius=0.6, start_angle=0.2, angle=2.6)
+        return VGroup(body, panels, orbit)
+
+    @staticmethod
+    def _addition() -> VGroup:
+        return VGroup(
+            Arrow([-0.5, -0.2, 0], [0.0, 0.2, 0], buff=0.02),
+            Arrow([0.0, 0.2, 0], [0.5, -0.05, 0], buff=0.02),
+            MathTex("+").scale(0.5).shift([0, -0.35, 0]),
+        )
+
+    @staticmethod
+    def _scalar() -> VGroup:
+        return VGroup(
+            MathTex("2").scale(0.45).shift([-0.4, 0, 0]),
+            MathTex(r"\times").scale(0.4),
+            Arrow([0.15, 0, 0], [0.65, 0, 0], buff=0.02),
+        )
+
+    @staticmethod
+    def _closure() -> VGroup:
+        circle = Circle(radius=0.3)
+        plus = MathTex("+").scale(0.35).shift([-0.12, 0, 0])
+        times = MathTex(r"\times").scale(0.3).shift([0.15, 0, 0])
+        return VGroup(circle, plus, times)
+
+    @staticmethod
+    def _vector_space() -> VGroup:
+        axes = VGroup(
+            Line([-0.45, 0, 0], [0.45, 0, 0]),
+            Line([0, -0.35, 0], [0, 0.35, 0]),
+        )
+        arrows = VGroup(
+            Arrow([0, 0, 0], [0.32, 0.22, 0], buff=0.02),
+            Arrow([0, 0, 0], [-0.25, 0.18, 0], buff=0.02),
+        )
+        return VGroup(axes, arrows)

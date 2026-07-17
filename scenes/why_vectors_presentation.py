@@ -1,0 +1,185 @@
+"""Chapter 1 prologue presentation: Why Vectors?"""
+
+from __future__ import annotations
+
+from manim import (
+    Arrow,
+    Create,
+    DOWN,
+    FadeIn,
+    FadeOut,
+    MathTex,
+    ORIGIN,
+    Scene,
+    Text,
+    VGroup,
+    Write,
+)
+
+from engine.manim_lesson_layout import LessonLayout
+from engine.manim_perspective_pictograms import PerspectivePictogramFactory
+from engine.why_vectors_content import WHY_VECTORS_SEQUENCE
+
+
+class WhyVectorsPresentation(Scene):
+    LAYOUT = LessonLayout()
+
+    PERSPECTIVE_HEADING_PAUSE = 0.7
+    EXAMPLE_REVEAL_PAUSE = 0.55
+    TAKEAWAY_PAUSE = 1.4
+    SYNTHESIS_PAUSE = 1.4
+    BRIDGE_PAUSE = 1.2
+
+    def construct(self) -> None:
+        title = Text(WHY_VECTORS_SEQUENCE.title).scale(
+            self.LAYOUT.title_scale
+        )
+        self.LAYOUT.place_title(title)
+
+        guiding_question = Text(
+            WHY_VECTORS_SEQUENCE.guiding_question
+        ).scale(self.LAYOUT.question_scale)
+        self.LAYOUT.place_question(guiding_question)
+
+        self.play(Write(title))
+        self.play(FadeIn(guiding_question))
+        self.wait(0.8)
+
+        for perspective in WHY_VECTORS_SEQUENCE.perspectives:
+            heading, question, example_rows, pictograms, takeaway = (
+                self._perspective_parts(perspective)
+            )
+
+            self.play(FadeIn(heading), FadeIn(question))
+            self.wait(self.PERSPECTIVE_HEADING_PAUSE)
+
+            for row, pictogram in zip(example_rows, pictograms):
+                label = row[1]
+                self.play(FadeIn(label), FadeIn(pictogram.group))
+                for part in pictogram.animated_parts:
+                    self.play(Create(part), run_time=0.35)
+                self.wait(self.EXAMPLE_REVEAL_PAUSE)
+
+            self.play(FadeIn(takeaway))
+            self.wait(self.TAKEAWAY_PAUSE)
+
+            self.play(
+                FadeOut(
+                    VGroup(
+                        heading,
+                        question,
+                        example_rows,
+                        takeaway,
+                    )
+                )
+            )
+
+        synthesis, connectors = self._synthesis_group()
+
+        self.play(
+            FadeIn(VGroup(*synthesis[:5])),
+            *[FadeIn(connector) for connector in connectors],
+        )
+        self.wait(0.9)
+        self.play(FadeIn(synthesis[5]))
+        self.wait(self.SYNTHESIS_PAUSE)
+
+        self.play(
+            FadeOut(connectors),
+            FadeOut(VGroup(*synthesis)),
+            FadeOut(guiding_question),
+        )
+
+        bridge_question = Text(
+            WHY_VECTORS_SEQUENCE.bridge_question
+        ).scale(self.LAYOUT.question_scale)
+        self.LAYOUT.place_question(bridge_question)
+
+        bridge_statement = Text(
+            WHY_VECTORS_SEQUENCE.bridge_statement
+        ).scale(self.LAYOUT.footer_scale)
+        self.LAYOUT.place_footer(bridge_statement)
+
+        geometric_arrow = Arrow(
+            start=ORIGIN,
+            end=[3.0, 1.5, 0.0],
+            buff=0.0,
+        )
+
+        origin_label = MathTex("(0,0)").scale(0.65)
+        origin_label.next_to(geometric_arrow.get_start(), DOWN)
+
+        self.play(FadeIn(bridge_question))
+        self.wait(self.BRIDGE_PAUSE)
+        self.play(FadeIn(bridge_statement))
+        self.wait(0.6)
+        self.play(Write(geometric_arrow), FadeIn(origin_label))
+        self.wait(1.5)
+
+    def _perspective_parts(self, perspective):
+        heading = Text(perspective.title).scale(0.66)
+        question = Text(perspective.question).scale(0.45)
+
+        pictograms = tuple(
+            PerspectivePictogramFactory.build(example)
+            for example in perspective.examples
+        )
+
+        example_rows = VGroup(
+            *[
+                VGroup(
+                    pictogram.group,
+                    Text(example).scale(0.40),
+                ).arrange([1.0, 0.0, 0.0], buff=0.22)
+                for example, pictogram in zip(
+                    perspective.examples,
+                    pictograms,
+                )
+            ]
+        ).arrange(
+            DOWN,
+            aligned_edge=[-1.0, 0.0, 0.0],
+            buff=0.14,
+        )
+
+        takeaway = Text(perspective.takeaway).scale(0.46)
+
+        content = VGroup(
+            heading,
+            question,
+            example_rows,
+            takeaway,
+        ).arrange(
+            DOWN,
+            aligned_edge=[-1.0, 0.0, 0.0],
+            buff=0.24,
+        )
+
+        self.LAYOUT.place_content(content)
+
+        return heading, question, example_rows, pictograms, takeaway
+
+    def _synthesis_group(self):
+        synthesis = VGroup(
+            Text("Physics").scale(0.5),
+            Text("Computer Science").scale(0.5),
+            Text("Engineering").scale(0.5),
+            Text("Mathematics").scale(0.5),
+            Text("VECTOR").scale(0.72),
+            Text(WHY_VECTORS_SEQUENCE.synthesis).scale(0.5),
+        )
+
+        synthesis[0].move_to([-4.2, 1.3, 0.0])
+        synthesis[1].move_to([-4.0, -1.0, 0.0])
+        synthesis[2].move_to([4.0, 1.3, 0.0])
+        synthesis[3].move_to([4.0, -1.0, 0.0])
+        synthesis[4].move_to([0.0, 0.25, 0.0])
+        synthesis[5].move_to(self.LAYOUT.footer_anchor)
+
+        connectors = VGroup(
+            Arrow(synthesis[0].get_right(), synthesis[4].get_left(), buff=0.12),
+            Arrow(synthesis[1].get_right(), synthesis[4].get_left(), buff=0.12),
+            Arrow(synthesis[2].get_left(), synthesis[4].get_right(), buff=0.12),
+            Arrow(synthesis[3].get_left(), synthesis[4].get_right(), buff=0.12),
+        )
+        return synthesis, connectors

@@ -1,0 +1,13 @@
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Perspective:
+    title:str
+    question:str
+    takeaway:str
+
+@dataclass(frozen=True)
+class PerspectiveSequence:
+    title:str
+    perspectives:tuple[Perspective,...]
+    synthesis:str

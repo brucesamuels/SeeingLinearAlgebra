@@ -1,0 +1,4 @@
+from engine.why_vectors_content import WHY_VECTORS_SEQUENCE
+def test_three_perspectives():
+    assert len(WHY_VECTORS_SEQUENCE.perspectives)==3
+    assert WHY_VECTORS_SEQUENCE.title=="Why Vectors?"

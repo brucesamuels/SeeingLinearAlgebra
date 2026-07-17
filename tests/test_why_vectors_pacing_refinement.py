@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+import inspect
+
+from scenes.why_vectors_presentation import WhyVectorsPresentation
+
+
+def test_perspective_examples_are_revealed_individually() -> None:
+    source = inspect.getsource(WhyVectorsPresentation.construct)
+
+    assert "for row, pictogram in zip(example_rows, pictograms):" in source
+    assert "self.play(FadeIn(label), FadeIn(pictogram.group))" in source
+    assert "self.wait(self.EXAMPLE_REVEAL_PAUSE)" in source
+
+
+def test_takeaway_lingers_after_examples() -> None:
+    source = inspect.getsource(WhyVectorsPresentation.construct)
+
+    assert "self.play(FadeIn(takeaway))" in source
+    assert "self.wait(self.TAKEAWAY_PAUSE)" in source
+
+
+def test_pacing_constants_are_explicit_and_adjustable() -> None:
+    assert WhyVectorsPresentation.PERSPECTIVE_HEADING_PAUSE > 0
+    assert WhyVectorsPresentation.EXAMPLE_REVEAL_PAUSE > 0
+    assert WhyVectorsPresentation.TAKEAWAY_PAUSE > (
+        WhyVectorsPresentation.EXAMPLE_REVEAL_PAUSE
+    )
+
+
+def test_guiding_question_is_not_removed_between_perspectives() -> None:
+    source = inspect.getsource(WhyVectorsPresentation.construct)
+    loop_start = source.index(
+        "for perspective in WHY_VECTORS_SEQUENCE.perspectives:"
+    )
+    synthesis_start = source.index(
+        "synthesis, connectors = self._synthesis_group()"
+    )
+    loop_source = source[loop_start:synthesis_start]
+
+    assert "FadeOut(guiding_question)" not in loop_source

@@ -1,0 +1,8 @@
+#!/bin/zsh
+set -e
+SCRIPT_DIR=${0:A:h}
+REPO_ROOT=${SCRIPT_DIR:h}
+cd "$REPO_ROOT"
+export PYTHONPATH="$REPO_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+python -m pytest -q tests/test_why_vectors_content.py
+python -m pytest -q

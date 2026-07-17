@@ -1,0 +1,19 @@
+from manim import Scene, Text, FadeIn, FadeOut, Write
+from engine.why_vectors_content import WHY_VECTORS_SEQUENCE
+
+class WhyVectorsPresentation(Scene):
+    def construct(self):
+        self.play(Write(Text(WHY_VECTORS_SEQUENCE.title)))
+        self.wait(0.5)
+        for p in WHY_VECTORS_SEQUENCE.perspectives:
+            grp=Text(f"{p.title}\n\n{p.question}\n\n{p.takeaway}").scale(0.5)
+            self.play(FadeIn(grp))
+            self.wait(1)
+            self.play(FadeOut(grp))
+        syn=Text(WHY_VECTORS_SEQUENCE.synthesis).scale(0.6)
+        self.play(FadeIn(syn))
+        self.wait(1)
+        self.play(FadeOut(syn))
+        end=Text("Next: What Is a Vector?").scale(0.7)
+        self.play(FadeIn(end))
+        self.wait(1)

@@ -7,18 +7,17 @@ from manim import (
     DashedLine,
     FadeIn,
     FadeOut,
+    LEFT,
     MathTex,
     ReplacementTransform,
     RIGHT,
     Scene,
     Text,
+    UP,
     VGroup,
     Write,
 )
 
-from engine.manim_instructional_widgets import ThemedText
-from engine.manim_lesson_layout import LessonLayout
-from engine.manim_lesson_theme import SEEING_LINEAR_ALGEBRA_THEME
 from engine.manim_vector_representation_display import (
     ManimVectorRepresentationDisplay,
 )
@@ -35,15 +34,9 @@ class VectorRepresentationPresentation(Scene):
     """Teach equivalent geometric and coordinate views of one vector."""
 
     LESSON_SEQUENCE = VECTOR_REPRESENTATION_LESSON_SEQUENCE
-    THEME = SEEING_LINEAR_ALGEBRA_THEME
-    LAYOUT = LessonLayout()
 
     def construct(self) -> None:
-        title = ThemedText.lesson_title(
-            "What Is a Vector?",
-            theme=self.THEME,
-        )
-        self.LAYOUT.place_title(title)
+        title = Text("What Is a Vector?").scale(0.8).to_edge(UP)
 
         mathematical_snapshot = VectorRepresentation([3.0, 2.0]).snapshot()
         display_snapshot = VectorRepresentationDisplayProjector(
@@ -53,8 +46,7 @@ class VectorRepresentationPresentation(Scene):
         ).project(mathematical_snapshot)
 
         display = ManimVectorRepresentationDisplay(display_snapshot)
-        display.shift([-1.2, -0.2, 0.0])
-        display.arrow.set_color(self.THEME.colors.geometry)
+        display.shift(1.2 * LEFT)
 
         start = display.arrow.get_start()
         end = display.arrow.get_end()
@@ -62,14 +54,9 @@ class VectorRepresentationPresentation(Scene):
 
         horizontal_leg = DashedLine(start, corner)
         vertical_leg = DashedLine(corner, end)
-        horizontal_leg.set_color(self.THEME.colors.geometry)
-        vertical_leg.set_color(self.THEME.colors.geometry)
 
         horizontal_label = MathTex("3").scale(0.7)
-        horizontal_label.next_to(
-            horizontal_leg,
-            direction=[0.0, -1.0, 0.0],
-        )
+        horizontal_label.next_to(horizontal_leg, direction=[0.0, -1.0, 0.0])
 
         vertical_label = MathTex("2").scale(0.7)
         vertical_label.next_to(vertical_leg, RIGHT)
@@ -81,28 +68,29 @@ class VectorRepresentationPresentation(Scene):
             vertical_label,
         )
 
-        prompt = ThemedText.guiding_question(
-            "Which coordinates describe this displacement?",
-            theme=self.THEME,
-        )
-        self.LAYOUT.place_question(prompt)
+        prompt = Text(
+            "Which coordinates describe this displacement?"
+        ).scale(0.55)
+        prompt.next_to(title, direction=[0.0, -1.0, 0.0], buff=0.35)
 
-        equivalence = ThemedText.takeaway(
-            "One vector, several equivalent representations",
-            theme=self.THEME,
-        )
-        self.LAYOUT.place_footer(equivalence)
+        equivalence = Text(
+            "One vector, several equivalent representations"
+        ).scale(0.55)
+        equivalence.next_to(title, direction=[0.0, -1.0, 0.0], buff=0.35)
 
-        pythagorean_reference = ThemedText.body(
-            "Use the Pythagorean distance formula",
-            theme=self.THEME,
+        pythagorean_reference = Text(
+            "Use the Pythagorean distance formula"
+        ).scale(0.5)
+        pythagorean_reference.next_to(
+            title,
+            direction=[0.0, -1.0, 0.0],
+            buff=0.35,
         )
-        self.LAYOUT.place_question(pythagorean_reference)
 
         magnitude_formula = MathTex(
             r"\|\mathbf{v}\|=\sqrt{3^2+2^2}"
         ).scale(0.75)
-        self.LAYOUT.place_footer(magnitude_formula)
+        magnitude_formula.to_edge([0.0, -1.0, 0.0])
 
         magnitude_exact = MathTex(
             r"\|\mathbf{v}\|=\sqrt{13}"
@@ -114,41 +102,32 @@ class VectorRepresentationPresentation(Scene):
         ).scale(0.75)
         magnitude_decimal.move_to(magnitude_formula)
 
-        magnitude_label = ThemedText.body(
-            display_snapshot.magnitude_text,
-            theme=self.THEME,
+        # Final label uses the same Text class and scale as dimension_label.
+        magnitude_label = Text(display_snapshot.magnitude_text).scale(
+            display.style.label_scale
         )
         magnitude_label.next_to(
             display.dimension_label,
             direction=[0.0, 1.0, 0.0],
             buff=display.style.vertical_gap,
-            aligned_edge=[-1.0, 0.0, 0.0],
+            aligned_edge=LEFT,
         )
 
         reflection = VGroup(
-            ThemedText.takeaway(
-                "The arrow shows direction and magnitude.",
-                theme=self.THEME,
-            ),
-            ThemedText.body(
-                "The coordinates encode the same vector.",
-                theme=self.THEME,
-            ),
-        ).arrange(
-            direction=[0.0, -1.0, 0.0],
-            buff=0.18,
-        )
-        self.LAYOUT.place_footer(reflection)
+            Text("The arrow shows direction and magnitude.").scale(0.48),
+            Text("The coordinates encode the same vector.").scale(0.48),
+        ).arrange(direction=[0.0, -1.0, 0.0], buff=0.2)
+        reflection.to_edge([0.0, -1.0, 0.0])
 
         self.play(Write(title))
 
         # ORIENT
         self.play(Create(display.arrow))
-        self.wait(self.THEME.timing.normal)
+        self.wait(0.5)
 
         # PREDICT
         self.play(FadeIn(prompt))
-        self.wait(self.THEME.timing.read)
+        self.wait(1.0)
         self.play(FadeOut(prompt))
 
         # OBSERVE
@@ -161,35 +140,19 @@ class VectorRepresentationPresentation(Scene):
         self.play(FadeIn(display.row_coordinates))
         self.play(FadeIn(display.column_coordinates))
         self.play(FadeIn(equivalence))
-        self.wait(self.THEME.timing.read)
+        self.wait(0.75)
 
         # STABILIZE
-        self.play(
-            FadeOut(equivalence),
-            FadeIn(pythagorean_reference),
-        )
+        self.play(FadeOut(equivalence), FadeIn(pythagorean_reference))
         self.play(Write(magnitude_formula))
+        self.play(ReplacementTransform(magnitude_formula, magnitude_exact))
+        self.play(ReplacementTransform(magnitude_exact, magnitude_decimal))
         self.play(
-            ReplacementTransform(
-                magnitude_formula,
-                magnitude_exact,
-            )
-        )
-        self.play(
-            ReplacementTransform(
-                magnitude_exact,
-                magnitude_decimal,
-            )
-        )
-        self.play(
-            ReplacementTransform(
-                magnitude_decimal,
-                magnitude_label,
-            ),
+            ReplacementTransform(magnitude_decimal, magnitude_label),
             FadeIn(display.dimension_label),
             FadeOut(pythagorean_reference),
         )
-        self.wait(self.THEME.timing.read)
+        self.wait(0.75)
 
         # REFLECT
         self.play(
@@ -198,4 +161,4 @@ class VectorRepresentationPresentation(Scene):
             FadeOut(component_triangle),
             FadeIn(reflection),
         )
-        self.wait(self.THEME.timing.reflection)
+        self.wait(1.0)

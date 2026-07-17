@@ -1,0 +1,71 @@
+{
+  "errors": [],
+  "is_valid": true,
+  "lesson_count": 2,
+  "lessons": [
+    {
+      "beats": [
+        {
+          "index": 1,
+          "name": "establish_3d_frame",
+          "role": "orient"
+        },
+        {
+          "index": 2,
+          "name": "predict_combination_motion",
+          "role": "predict"
+        },
+        {
+          "index": 3,
+          "name": "animate_independent_coefficients",
+          "role": "observe"
+        },
+        {
+          "index": 4,
+          "name": "pin_exact_final_state",
+          "role": "stabilize"
+        },
+        {
+          "index": 5,
+          "name": "reflect_on_full_rank_span",
+          "role": "reflect"
+        }
+      ],
+      "key": "full_rank_3d_linear_combination",
+      "title": "Full-Rank 3D Linear Combination"
+    },
+    {
+      "beats": [
+        {
+          "index": 1,
+          "name": "establish_initial_geometry",
+          "role": "orient"
+        },
+        {
+          "index": 2,
+          "name": "predict_rank_loss",
+          "role": "predict"
+        },
+        {
+          "index": 3,
+          "name": "animate_rank_collapse",
+          "role": "observe"
+        },
+        {
+          "index": 4,
+          "name": "stabilize_degenerate_state",
+          "role": "stabilize"
+        },
+        {
+          "index": 5,
+          "name": "reflect_on_dimension_loss",
+          "role": "reflect"
+        }
+      ],
+      "key": "rank_collapse",
+      "title": "Rank Collapse"
+    }
+  ],
+  "schema_version": 1,
+  "total_beat_count": 10
+}

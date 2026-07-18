@@ -10,8 +10,6 @@ from manim import (
     MathTex,
     ReplacementTransform,
     Scene,
-    Text,
-    UP,
     VGroup,
     Write,
 )
@@ -20,13 +18,22 @@ from engine.free_vector_equality import FreeVectorEquality
 from engine.free_vector_equality_lesson import (
     FREE_VECTOR_EQUALITY_LESSON_SEQUENCE,
 )
+from engine.manim_instructional_widgets import ThemedText
+from engine.manim_lesson_layout import LessonLayout
+from engine.manim_lesson_theme import SEEING_LINEAR_ALGEBRA_THEME
 
 
 class FreeVectorEqualityPresentation(Scene):
     LESSON_SEQUENCE = FREE_VECTOR_EQUALITY_LESSON_SEQUENCE
+    THEME = SEEING_LINEAR_ALGEBRA_THEME
+    LAYOUT = LessonLayout()
 
     def construct(self) -> None:
-        title = Text("Free Vectors and Equality").scale(0.8).to_edge(UP)
+        title = ThemedText.lesson_title(
+            "Free Vectors and Equality",
+            theme=self.THEME,
+        )
+        self.LAYOUT.place_title(title)
 
         equality_snapshot = FreeVectorEquality(
             coordinates=[2.0, 1.0],
@@ -44,44 +51,67 @@ class FreeVectorEqualityPresentation(Scene):
                     start=[copy.origin[0], copy.origin[1], 0.0],
                     end=[copy.endpoint[0], copy.endpoint[1], 0.0],
                     buff=0.0,
+                    color=self.THEME.colors.geometry,
                 )
                 for copy in equality_snapshot.copies
             ]
         )
 
-        coordinate_label = MathTex(r"\mathbf{v}=\begin{bmatrix}2\\1\end{bmatrix}")
+        coordinate_label = MathTex(
+            r"\mathbf{v}=\begin{bmatrix}2\\1\end{bmatrix}"
+        )
         coordinate_label.scale(0.75)
-        coordinate_label.to_edge([0.0, -1.0, 0.0])
+        coordinate_label.set_color(self.THEME.colors.mathematics)
+        self.LAYOUT.place_footer(coordinate_label)
 
-        prompt = Text(
-            "If we move the arrow, is it still the same vector?"
-        ).scale(0.52)
-        prompt.next_to(title, [0.0, -1.0, 0.0], buff=0.35)
+        prompt = ThemedText.guiding_question(
+            "If we move the arrow, is it still the same vector?",
+            theme=self.THEME,
+        )
+        self.LAYOUT.place_question(prompt)
 
         invariants = VGroup(
-            Text("same coordinates").scale(0.48),
-            Text("same direction").scale(0.48),
-            Text("same magnitude").scale(0.48),
-            Text("different location").scale(0.48),
+            ThemedText.body(
+                "same coordinates",
+                theme=self.THEME,
+            ).set_color(self.THEME.colors.mathematics),
+            ThemedText.body(
+                "same direction",
+                theme=self.THEME,
+            ).set_color(self.THEME.colors.geometry),
+            ThemedText.body(
+                "same magnitude",
+                theme=self.THEME,
+            ).set_color(self.THEME.colors.geometry),
+            ThemedText.body(
+                "different location",
+                theme=self.THEME,
+            ).set_color(self.THEME.colors.example),
         ).arrange([0.0, -1.0, 0.0], buff=0.15)
         invariants.to_edge([1.0, 0.0, 0.0])
 
         definition = VGroup(
-            Text("Equal free vectors have the same").scale(0.5),
-            Text("direction and magnitude, regardless of location.").scale(0.5),
+            ThemedText.takeaway(
+                "Equal free vectors have the same",
+                theme=self.THEME,
+            ).set_color(self.THEME.colors.definition),
+            ThemedText.body(
+                "direction and magnitude, regardless of location.",
+                theme=self.THEME,
+            ),
         ).arrange([0.0, -1.0, 0.0], buff=0.18)
-        definition.to_edge([0.0, -1.0, 0.0])
+        self.LAYOUT.place_footer(definition)
 
         self.play(Write(title))
 
         # ORIENT
         self.play(Create(arrows[0]))
         self.play(FadeIn(coordinate_label))
-        self.wait(0.5)
+        self.wait(self.THEME.timing.normal)
 
         # PREDICT
         self.play(FadeIn(prompt))
-        self.wait(1.0)
+        self.wait(self.THEME.timing.read)
         self.play(FadeOut(prompt))
 
         # OBSERVE
@@ -91,15 +121,15 @@ class FreeVectorEqualityPresentation(Scene):
             next_arrow = target.copy()
             self.play(ReplacementTransform(moving_arrow, next_arrow))
             moving_arrow = next_arrow
-            self.wait(0.35)
+            self.wait(self.THEME.timing.quick)
 
         self.play(FadeOut(moving_arrow))
         self.play(*[FadeIn(arrow) for arrow in arrows])
-        self.wait(0.5)
+        self.wait(self.THEME.timing.normal)
 
         # STABILIZE
         self.play(FadeIn(invariants))
-        self.wait(0.9)
+        self.wait(self.THEME.timing.read)
 
         # REFLECT
         self.play(
@@ -107,4 +137,4 @@ class FreeVectorEqualityPresentation(Scene):
             FadeOut(coordinate_label),
             FadeIn(definition),
         )
-        self.wait(1.0)
+        self.wait(self.THEME.timing.reflection)

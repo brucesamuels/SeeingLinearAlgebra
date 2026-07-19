@@ -11,17 +11,25 @@ from scenes.free_vector_equality_presentation import FreeVectorEqualityPresentat
 from scenes.placing_vector_at_origin_presentation import (
     PlacingVectorAtOriginPresentation,
 )
+from scenes.three_vector_addition_presentation import (
+    ThreeVectorAdditionPresentation,
+)
+from scenes.vector_addition_presentation import VectorAdditionPresentation
 from scenes.vector_representation_presentation import VectorRepresentationPresentation
 from scenes.why_vectors_presentation import WhyVectorsPresentation
 
 
-class ChapterOneOpeningPresentation(WhyVectorsPresentation):
+class ChapterOneOpeningPresentation(
+    ThreeVectorAdditionPresentation,
+    WhyVectorsPresentation,
+):
     """Render the Chapter 1 opening by delegating to proven lesson scenes.
 
-    The scene intentionally inherits from ``WhyVectorsPresentation`` so its
-    private renderer-side helpers remain available when that approved lesson's
-    ``construct`` method is executed on this shared Manim scene. The remaining
-    approved lessons currently require no additional helper methods.
+    ``ThreeVectorAdditionPresentation`` is listed first so the combined
+    scene inherits Manim's 3D camera and fixed-frame APIs. The
+    ``WhyVectorsPresentation`` base preserves the approved opening lesson's
+    private renderer-side helpers. All lesson ordering remains controlled
+    exclusively by ``CHAPTER_ONE_OPENING_SEQUENCE``.
     """
 
     CHAPTER_SEQUENCE = CHAPTER_ONE_OPENING_SEQUENCE
@@ -31,6 +39,8 @@ class ChapterOneOpeningPresentation(WhyVectorsPresentation):
             "vector_representation": VectorRepresentationPresentation,
             "free_vector_equality": FreeVectorEqualityPresentation,
             "placing_vector_at_origin": PlacingVectorAtOriginPresentation,
+            "vector_addition": VectorAdditionPresentation,
+            "three_vector_addition": ThreeVectorAdditionPresentation,
         }
     )
 

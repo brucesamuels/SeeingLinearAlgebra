@@ -18,6 +18,8 @@ def test_chapter_one_opening_uses_the_approved_lesson_order() -> None:
         "vector_representation",
         "free_vector_equality",
         "placing_vector_at_origin",
+        "vector_addition",
+        "three_vector_addition",
     )
 
     assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_titles == (
@@ -25,11 +27,13 @@ def test_chapter_one_opening_uses_the_approved_lesson_order() -> None:
         "What Is a Vector?",
         "Free Vectors and Equality",
         "Placing a Vector at the Origin",
+        "Vector Addition",
+        "Three Vectors in 3-Space",
     )
 
 
 def test_chapter_one_opening_references_each_lesson_once() -> None:
     keys = CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys
 
-    assert len(CHAPTER_ONE_OPENING_SEQUENCE) == 4
+    assert len(CHAPTER_ONE_OPENING_SEQUENCE) == 6
     assert len(set(keys)) == len(keys)

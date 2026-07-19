@@ -12,17 +12,15 @@ STANDALONE_SCENE_PATH = Path(
 
 
 def test_standard_position_lesson_follows_free_vector_equality() -> None:
-    namespace: dict[str, object] = {}
-
-    # The sequence module is renderer-independent and safe to import directly.
+    # This is an adjacency invariant, not an end-of-sequence invariant.
     from engine.chapter_one_opening_sequence import (
         CHAPTER_ONE_OPENING_SEQUENCE,
     )
 
-    assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys[-2:] == (
-        "free_vector_equality",
-        "placing_vector_at_origin",
-    )
+    lesson_keys = CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys
+    free_vector_index = lesson_keys.index("free_vector_equality")
+
+    assert lesson_keys[free_vector_index + 1] == "placing_vector_at_origin"
 
 
 def test_combined_scene_reuses_the_approved_standard_position_scene() -> None:

@@ -25,5 +25,13 @@ CHAPTER_ONE_OPENING_SEQUENCE = ChapterSequence(
             key="placing_vector_at_origin",
             title="Placing a Vector at the Origin",
         ),
+        ChapterLessonReference(
+            key="vector_addition",
+            title="Vector Addition",
+        ),
+        ChapterLessonReference(
+            key="three_vector_addition",
+            title="Three Vectors in 3-Space",
+        ),
     ),
 )

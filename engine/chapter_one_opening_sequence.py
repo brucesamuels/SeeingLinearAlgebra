@@ -30,6 +30,14 @@ CHAPTER_ONE_OPENING_SEQUENCE = ChapterSequence(
             title="Vector Addition",
         ),
         ChapterLessonReference(
+            key="vector_addition_commutativity",
+            title="Commutativity of Vector Addition",
+        ),
+        ChapterLessonReference(
+            key="vector_subtraction",
+            title="Vector Subtraction",
+        ),
+        ChapterLessonReference(
             key="three_vector_addition",
             title="Three Vectors in 3-Space",
         ),

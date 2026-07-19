@@ -14,8 +14,12 @@ from scenes.placing_vector_at_origin_presentation import (
 from scenes.three_vector_addition_presentation import (
     ThreeVectorAdditionPresentation,
 )
+from scenes.vector_addition_commutativity_presentation import (
+    VectorAdditionCommutativityPresentation,
+)
 from scenes.vector_addition_presentation import VectorAdditionPresentation
 from scenes.vector_representation_presentation import VectorRepresentationPresentation
+from scenes.vector_subtraction_presentation import VectorSubtractionPresentation
 from scenes.why_vectors_presentation import WhyVectorsPresentation
 
 
@@ -40,6 +44,10 @@ class ChapterOneOpeningPresentation(
             "free_vector_equality": FreeVectorEqualityPresentation,
             "placing_vector_at_origin": PlacingVectorAtOriginPresentation,
             "vector_addition": VectorAdditionPresentation,
+            "vector_addition_commutativity": (
+                VectorAdditionCommutativityPresentation
+            ),
+            "vector_subtraction": VectorSubtractionPresentation,
             "three_vector_addition": ThreeVectorAdditionPresentation,
         }
     )

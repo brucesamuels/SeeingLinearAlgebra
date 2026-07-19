@@ -10,15 +10,16 @@ STANDALONE_SCENE_PATH = Path(
 )
 
 
-def test_three_vector_addition_closes_the_opening_sequence() -> None:
+def test_three_vector_addition_remains_the_closing_capstone() -> None:
     from engine.chapter_one_opening_sequence import (
         CHAPTER_ONE_OPENING_SEQUENCE,
     )
 
-    assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys[-2:] == (
-        "vector_addition",
-        "three_vector_addition",
-    )
+    lesson_keys = CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys
+    subtraction_index = lesson_keys.index("vector_subtraction")
+
+    assert lesson_keys[subtraction_index + 1] == "three_vector_addition"
+    assert lesson_keys[-1] == "three_vector_addition"
     assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_titles[-1] == (
         "Three Vectors in 3-Space"
     )
@@ -48,12 +49,10 @@ def test_combined_scene_is_3d_capable_without_copying_3d_implementation() -> Non
         if isinstance(node, ast.ClassDef)
         and node.name == "ChapterOneOpeningPresentation"
     )
-
     base_names = tuple(
-        base.id
-        for base in combined_class.bases
-        if isinstance(base, ast.Name)
+        base.id for base in combined_class.bases if isinstance(base, ast.Name)
     )
+
     assert base_names == (
         "ThreeVectorAdditionPresentation",
         "WhyVectorsPresentation",
@@ -74,11 +73,8 @@ def test_combined_scene_is_3d_capable_without_copying_3d_implementation() -> Non
 def test_three_vector_scene_remains_independently_renderable() -> None:
     source = STANDALONE_SCENE_PATH.read_text(encoding="utf-8")
     module = ast.parse(source)
-
     class_names = {
-        node.name
-        for node in module.body
-        if isinstance(node, ast.ClassDef)
+        node.name for node in module.body if isinstance(node, ast.ClassDef)
     }
 
     assert "ThreeVectorAdditionPresentation" in class_names
@@ -97,6 +93,10 @@ def test_registry_keys_match_complete_renderer_independent_sequence() -> None:
         "free_vector_equality": "FreeVectorEqualityPresentation",
         "placing_vector_at_origin": "PlacingVectorAtOriginPresentation",
         "vector_addition": "VectorAdditionPresentation",
+        "vector_addition_commutativity": (
+            "VectorAdditionCommutativityPresentation"
+        ),
+        "vector_subtraction": "VectorSubtractionPresentation",
         "three_vector_addition": "ThreeVectorAdditionPresentation",
     }
 
@@ -104,4 +104,9 @@ def test_registry_keys_match_complete_renderer_independent_sequence() -> None:
         CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys
     )
     for key, presentation_name in expected_bindings.items():
-        assert source.count(f'"{key}": {presentation_name}') == 1
+        binding = f'"{key}": {presentation_name}'
+        if key == "vector_addition_commutativity":
+            assert source.count('"vector_addition_commutativity": (') == 1
+            assert source.count(presentation_name) == 2
+        else:
+            assert source.count(binding) == 1

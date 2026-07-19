@@ -26,6 +26,10 @@ CHAPTER_ONE_OPENING_SEQUENCE = ChapterSequence(
             title="Placing a Vector at the Origin",
         ),
         ChapterLessonReference(
+            key="scalar_multiplication",
+            title="Scalar Multiplication",
+        ),
+        ChapterLessonReference(
             key="vector_addition",
             title="Vector Addition",
         ),

@@ -11,6 +11,9 @@ from scenes.free_vector_equality_presentation import FreeVectorEqualityPresentat
 from scenes.placing_vector_at_origin_presentation import (
     PlacingVectorAtOriginPresentation,
 )
+from scenes.scalar_multiplication_presentation import (
+    ScalarMultiplicationPresentation,
+)
 from scenes.three_vector_addition_presentation import (
     ThreeVectorAdditionPresentation,
 )
@@ -29,20 +32,26 @@ class ChapterOneOpeningPresentation(
 ):
     """Render the Chapter 1 opening by delegating to proven lesson scenes.
 
-    ``ThreeVectorAdditionPresentation`` is listed first so the combined
-    scene inherits Manim's 3D camera and fixed-frame APIs. The
+    ``ThreeVectorAdditionPresentation`` is listed first so the combined scene
+    inherits Manim's 3D camera and fixed-frame APIs. The
     ``WhyVectorsPresentation`` base preserves the approved opening lesson's
     private renderer-side helpers. All lesson ordering remains controlled
     exclusively by ``CHAPTER_ONE_OPENING_SEQUENCE``.
     """
 
     CHAPTER_SEQUENCE = CHAPTER_ONE_OPENING_SEQUENCE
+
+    # Delegated scalar-multiplication construction reads its approved
+    # renderer-independent stages through the scene instance.
+    LESSON_STAGES = ScalarMultiplicationPresentation.LESSON_STAGES
+
     PRESENTATIONS_BY_KEY = MappingProxyType(
         {
             "why_vectors": WhyVectorsPresentation,
             "vector_representation": VectorRepresentationPresentation,
             "free_vector_equality": FreeVectorEqualityPresentation,
             "placing_vector_at_origin": PlacingVectorAtOriginPresentation,
+            "scalar_multiplication": ScalarMultiplicationPresentation,
             "vector_addition": VectorAdditionPresentation,
             "vector_addition_commutativity": (
                 VectorAdditionCommutativityPresentation
@@ -63,11 +72,11 @@ class ChapterOneOpeningPresentation(
 
     def _transition_between_lessons(self) -> None:
         """Fade the completed lesson away before reusing the shared canvas."""
+
         current_mobjects = tuple(self.mobjects)
         if current_mobjects:
             self.play(
                 *[FadeOut(mobject) for mobject in current_mobjects],
                 run_time=self.THEME.timing.transition,
             )
-
         self.clear()

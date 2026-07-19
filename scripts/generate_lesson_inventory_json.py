@@ -6,6 +6,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import sys as _sys
+from pathlib import Path as _Path
+
+_REPO_ROOT = _Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_REPO_ROOT))
+
 from engine.lesson_inventory import LessonInventory
 from engine.lesson_inventory_json import (
     lesson_inventory_to_json,

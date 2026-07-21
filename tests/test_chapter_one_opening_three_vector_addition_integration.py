@@ -18,9 +18,12 @@ def test_three_vector_addition_remains_the_closing_capstone() -> None:
     lesson_keys = CHAPTER_ONE_OPENING_SEQUENCE.lesson_keys
     subtraction_index = lesson_keys.index("vector_subtraction")
 
+    three_vector_index = lesson_keys.index("three_vector_addition")
+
     assert lesson_keys[subtraction_index + 1] == "three_vector_addition"
-    assert lesson_keys[-1] == "three_vector_addition"
-    assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_titles[-1] == (
+    assert lesson_keys[three_vector_index + 1] == "infinite_possibilities"
+    assert lesson_keys[-1] == "infinite_possibilities"
+    assert CHAPTER_ONE_OPENING_SEQUENCE.lesson_titles[three_vector_index] == (
         "Three Vectors in 3-Space"
     )
 
@@ -28,10 +31,9 @@ def test_three_vector_addition_remains_the_closing_capstone() -> None:
 def test_combined_scene_reuses_approved_three_vector_scene() -> None:
     source = SCENE_PATH.read_text(encoding="utf-8")
 
+    assert "ThreeVectorAdditionPresentation" in source
     assert (
-        "from scenes.three_vector_addition_presentation import (\n"
-        "    ThreeVectorAdditionPresentation,\n"
-        ")"
+        '"three_vector_addition": ThreeVectorAdditionPresentation'
     ) in source
     assert (
         '"three_vector_addition": ThreeVectorAdditionPresentation'
@@ -97,6 +99,7 @@ def test_registry_keys_match_complete_renderer_independent_sequence() -> None:
         "vector_representation": "VectorRepresentationPresentation",
         "free_vector_equality": "FreeVectorEqualityPresentation",
         "placing_vector_at_origin": "PlacingVectorAtOriginPresentation",
+        "special_vectors": "SpecialVectorsPresentation",
         "scalar_multiplication": "ScalarMultiplicationPresentation",
         "vector_addition": "VectorAdditionPresentation",
         "vector_addition_commutativity": (
@@ -104,6 +107,7 @@ def test_registry_keys_match_complete_renderer_independent_sequence() -> None:
         ),
         "vector_subtraction": "VectorSubtractionPresentation",
         "three_vector_addition": "ThreeVectorAdditionPresentation",
+        "infinite_possibilities": "InfinitePossibilitiesPresentation",
     }
 
     assert tuple(expected_bindings) == (
@@ -113,7 +117,13 @@ def test_registry_keys_match_complete_renderer_independent_sequence() -> None:
     for key, presentation_name in expected_bindings.items():
         binding = f'"{key}": {presentation_name}'
         if key == "vector_addition_commutativity":
-            assert source.count('"vector_addition_commutativity": (') == 1
+            assert (
+                source.count(
+                    '"vector_addition_commutativity": '
+                    'VectorAdditionCommutativityPresentation'
+                )
+                == 1
+            )
             assert source.count(presentation_name) == 2
         else:
             assert source.count(binding) == 1

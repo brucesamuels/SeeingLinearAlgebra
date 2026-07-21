@@ -19,20 +19,18 @@ def test_scalar_multiplication_follows_standard_position_and_precedes_addition()
     standard_position_index = lesson_keys.index("placing_vector_at_origin")
     scalar_multiplication_index = lesson_keys.index("scalar_multiplication")
 
-    assert lesson_keys[standard_position_index + 1] == (
-        "scalar_multiplication"
-    )
+    special_vectors_index = lesson_keys.index("special_vectors")
+
+    assert lesson_keys[standard_position_index + 1] == "special_vectors"
+    assert lesson_keys[special_vectors_index + 1] == "scalar_multiplication"
     assert lesson_keys[scalar_multiplication_index + 1] == "vector_addition"
 
 
 def test_combined_scene_reuses_the_approved_scalar_multiplication_scene() -> None:
     source = SCENE_PATH.read_text(encoding="utf-8")
 
-    assert (
-        "from scenes.scalar_multiplication_presentation import (\n"
-        "    ScalarMultiplicationPresentation,\n"
-        ")"
-    ) in source
+    assert "ScalarMultiplicationPresentation" in source
+    assert '"scalar_multiplication": ScalarMultiplicationPresentation' in source
     assert '"scalar_multiplication": ScalarMultiplicationPresentation' in source
     assert "ScalarMultiplicationPresentation.construct(self)" not in source
     assert "presentation_class.construct(self)" in source

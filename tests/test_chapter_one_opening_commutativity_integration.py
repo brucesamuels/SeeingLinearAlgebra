@@ -30,12 +30,15 @@ def test_commutativity_follows_vector_addition_and_precedes_subtraction() -> Non
 def test_combined_scene_reuses_the_approved_commutativity_scene() -> None:
     source = SCENE_PATH.read_text(encoding="utf-8")
 
+    assert "VectorAdditionCommutativityPresentation" in source
     assert (
-        "from scenes.vector_addition_commutativity_presentation import (\n"
-        "    VectorAdditionCommutativityPresentation,\n"
-        ")"
+        '"vector_addition_commutativity": '
+        "VectorAdditionCommutativityPresentation"
     ) in source
-    assert '"vector_addition_commutativity": (' in source
+    assert (
+        '"vector_addition_commutativity": '
+        'VectorAdditionCommutativityPresentation'
+    ) in source
     assert "VectorAdditionCommutativityPresentation" in source
     assert (
         "VectorAdditionCommutativityPresentation.construct(self)"

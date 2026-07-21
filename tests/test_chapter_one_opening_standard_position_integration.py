@@ -26,11 +26,10 @@ def test_standard_position_lesson_follows_free_vector_equality() -> None:
 def test_combined_scene_reuses_the_approved_standard_position_scene() -> None:
     source = SCENE_PATH.read_text(encoding="utf-8")
 
+    assert "PlacingVectorAtOriginPresentation" in source
     assert (
-        "from scenes.placing_vector_at_origin_presentation import (\n"
-        "    PlacingVectorAtOriginPresentation,\n"
-        ")" in source
-    )
+        '"placing_vector_at_origin": PlacingVectorAtOriginPresentation'
+    ) in source
     assert (
         '"placing_vector_at_origin": '
         "PlacingVectorAtOriginPresentation"

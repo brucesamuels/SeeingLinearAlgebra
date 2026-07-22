@@ -104,4 +104,8 @@ def test_combined_scene_remains_a_small_renderer_side_adapter() -> None:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
     }
 
-    assert method_names == {"construct", "_transition_between_lessons"}
+    assert method_names == {
+        "construct",
+        "_transition_between_lessons",
+        "_restore_2d_camera",
+    }

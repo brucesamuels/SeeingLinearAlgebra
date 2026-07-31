@@ -18,3 +18,5 @@ media/
 # Keep approved exports out of normal Git history except placeholder
 media_exports/*
 !media_exports/.gitkeep
+
+.checkpoint_backups/

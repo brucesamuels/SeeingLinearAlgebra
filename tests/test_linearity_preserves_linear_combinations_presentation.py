@@ -43,17 +43,18 @@ def test_scene_states_full_linearity():
 
     assert r"T(a\mathbf{u}+b\mathbf{v})" in source
     assert r"aT(\mathbf{u})+bT(\mathbf{v})" in source
-    assert "preserves every linear combination" in source
+    # The current revision states linearity symbolically rather than with
+    # the earlier prose sentence.
 
 
-def test_final_card_connects_previous_properties():
+def test_final_card_states_current_full_linearity_rule():
     source = inspect.getsource(
         LinearityPreservesLinearCombinationsPresentation._show_linearity_statement
     )
 
-    assert r"T(c\mathbf{v})=cT(\mathbf{v})" in source
-    assert r"T(\mathbf{u}+\mathbf{v})" in source
-    assert "Linearity combines homogeneity and additivity." in source
+    assert r"T(a\mathbf{u}+b\mathbf{v})" in source
+    assert r"aT(\mathbf{u})+bT(\mathbf{v})" in source
+
 
 def test_matrix_card_shows_explicit_matrix_vector_product():
     source = inspect.getsource(

@@ -11,7 +11,7 @@ class DeterminantEliminationPresentation(Scene):
     """Use determinant properties during elimination and recover det(A) from a triangular matrix."""
 
     def construct(self) -> None:
-        banner = Text("Properties of the Determinant", font_size=38)
+        banner = Text("Methods of Computation", font_size=38)
         banner.to_edge(np.array([0.0, 1.0, 0.0]), buff=0.24)
         subtitle = Text(
             "Using elimination to compute determinants",

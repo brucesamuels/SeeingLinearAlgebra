@@ -13,7 +13,7 @@ def test_scene_class_exists() -> None:
 
 def test_scene_has_context_banner() -> None:
     text = source()
-    assert "Properties of the Determinant" in text
+    assert "Methods of Computation" in text
     assert "Using elimination to compute determinants" in text
 
 

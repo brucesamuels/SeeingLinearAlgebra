@@ -101,7 +101,7 @@ class SymmetricOrthogonalEigenvectorsPresentation(Scene):
         self.wait(1.4)
 
         # Card 4 — first evaluation.
-        heading = self._replace_heading(heading, "Use Aw = mu w.")
+        heading = self._replace_math_heading(heading, r"\text{Use }A\mathbf w=\mu\mathbf w")
         self.play(FadeOut(card))
         line1 = MathTex(r"\mathbf v^T A\mathbf w=\mathbf v^T(\mu\mathbf w)", font_size=50, color=WHITE)
         line2 = MathTex(r"=\mu\,\mathbf v^T\mathbf w", font_size=54, color=BLUE_C)

@@ -191,7 +191,7 @@ class CharacteristicEquationPresentation(Scene):
         products = VGroup(first_product, minus, second_product).arrange(RIGHT, buff=0.32)
         products.next_to(rule, DOWN, buff=0.66)
         compact = MathTex(r"(5-\lambda)^2-9", font_size=50, color=YELLOW)
-        compact.next_to(products, DOWN, buff=0.56)
+        compact.move_to(products.get_center())
         determinant_note = Text("Multiply the main diagonal, then subtract the other diagonal product.", font_size=26, color=WHITE)
         determinant_note.to_edge(DOWN, buff=0.30)
         determinant_note.scale_to_fit_width(10.8)

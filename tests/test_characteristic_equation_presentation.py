@@ -83,3 +83,10 @@ def test_final_synthesis_repeats_complete_algebraic_bridge() -> None:
 
 def test_student_facing_scene_contains_no_checkpoint_number() -> None:
     assert "CP171" not in source()
+
+
+def test_determinant_card_reserves_bottom_caption_band() -> None:
+    text = source()
+    assert 'compact.move_to(products.get_center())' in text
+    assert 'compact.next_to(products, DOWN, buff=0.56)' not in text
+    assert 'determinant_note.to_edge(DOWN, buff=0.30)' in text

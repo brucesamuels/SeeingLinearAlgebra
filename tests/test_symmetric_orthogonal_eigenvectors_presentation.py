@@ -38,3 +38,9 @@ def test_orthogonal_diagonalization_is_previewed() -> None:
 
 def test_student_facing_scene_omits_checkpoint_number() -> None:
     assert "CP178" not in source()
+
+
+def test_card_four_subheading_renders_mu_as_math() -> None:
+    text = source()
+    assert r'_replace_math_heading(heading, r"\text{Use }A\mathbf w=\mu\mathbf w")' in text
+    assert '"Use Aw = mu w."' not in text

@@ -35,3 +35,30 @@ python3 -m manim -pqh episode02_subspaces/episode02.py Episode02Subspaces
 ```
 
 See `GIT_WORKFLOW.md` for the version-control procedure.
+
+## Production environment
+
+- macOS
+- zsh
+- Python 3.12
+- Manim Community 0.21.0
+
+### Manim 0.21.0 compatibility audit
+
+The project was migrated from Manim Community 0.20.1 to 0.21.0 after a compatibility audit.
+
+Validation results:
+
+- 2753 tests passed under Manim 0.21.0
+- No project or Manim deprecation warnings were found
+- The remaining warning comes from `pydub` importing Python's deprecated `audioop` module
+- Representative matrix, vector, 3D, eigenvalue, and Change of Basis scenes rendered successfully
+- Manim 0.20.1 remains the previously validated production baseline for earlier checkpoints
+
+All Manim commands should be run from the repository root.
+
+For the current Conda environment:
+
+    conda activate seeingla-manim021
+    export PYTHONPATH="$PWD"
+

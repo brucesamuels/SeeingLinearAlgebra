@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP Calculus Problem Set Generator</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="app-header no-print">
+    <h1>AP Calculus Problem Set Generator</h1>
+    <p class="subtitle">Build a randomized AP Calculus AB/BC problem set by unit, topic, and difficulty — then print or save it as a PDF.</p>
+  </header>
+
+  <section class="controls no-print" aria-label="Problem set options">
+    <div class="control-grid">
+
+      <div class="control">
+        <label for="courseSelect">Course</label>
+        <select id="courseSelect">
+          <option value="ab">AP Calculus AB (Units 1–8)</option>
+          <option value="bc">AP Calculus BC (Units 1–10)</option>
+        </select>
+      </div>
+
+      <div class="control control-wide">
+        <label id="topicsLabel">Units &amp; Topics</label>
+        <div class="dropdown" id="topicsDropdown">
+          <button type="button" class="dropdown-toggle" id="topicsToggle" aria-haspopup="true" aria-expanded="false" aria-labelledby="topicsLabel">
+            <span id="topicsSummary">All units &amp; topics</span>
+            <span class="chevron">▾</span>
+          </button>
+          <div class="dropdown-panel" id="topicsPanel" hidden>
+            <div class="dropdown-panel-actions">
+              <button type="button" class="link-btn" id="selectAllBtn">Select All</button>
+              <button type="button" class="link-btn" id="clearAllBtn">Clear All</button>
+            </div>
+            <div id="unitList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="control">
+        <label for="countSelect">Number of Questions</label>
+        <select id="countSelect">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+          <option value="30">30</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="typeSelect">Question Type</label>
+        <select id="typeSelect">
+          <option value="mixed">Mixed (MC + FRQ)</option>
+          <option value="mc">Multiple Choice</option>
+          <option value="frq">Free Response</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="difficultySelect">Difficulty</label>
+        <select id="difficultySelect">
+          <option value="mixed">Mixed</option>
+          <option value="1">Easy</option>
+          <option value="2">Medium</option>
+          <option value="3">Hard</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="viewToggle">View</label>
+        <div class="toggle-row">
+          <span class="toggle-label" id="viewLabelStudent">Student</span>
+          <button type="button" class="switch" id="viewToggle" role="switch" aria-checked="false" aria-label="Toggle teacher view">
+            <span class="switch-knob"></span>
+          </button>
+          <span class="toggle-label" id="viewLabelTeacher">Teacher (Answer Key)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="action-row">
+      <button type="button" class="btn btn-primary" id="generateBtn">Generate Problem Set</button>
+      <button type="button" class="btn btn-secondary" id="printBtn">Print / Save as PDF</button>
+      <span class="hint">Uses your browser's print dialog — choose "Save as PDF" as the destination.</span>
+    </div>
+  </section>
+
+  <main id="worksheet" class="worksheet">
+    <div class="worksheet-header">
+      <div class="worksheet-title-row">
+        <h2 id="worksheetTitle">AP Calculus Problem Set</h2>
+        <div class="worksheet-meta" id="worksheetMeta"></div>
+      </div>
+      <div class="student-fields" id="studentFields">
+        <div class="field"><span>Name:</span><span class="rule"></span></div>
+        <div class="field"><span>Date:</span><span class="rule"></span></div>
+        <div class="field"><span>Period:</span><span class="rule"></span></div>
+      </div>
+    </div>
+    <div id="problemList" class="problem-list">
+      <p class="empty-state">Choose your options above and click <strong>Generate Problem Set</strong> to begin.</p>
+    </div>
+  </main>
+
+  <footer class="app-footer no-print">
+    <p>Covers AP Calculus AB/BC units and topics per the College Board Course and Exam Description. Problems and numbers are randomly generated each time.</p>
+  </footer>
+
+</div>
+
+<script src="core.js"></script>
+<script src="curriculum.js"></script>
+<script src="generators.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

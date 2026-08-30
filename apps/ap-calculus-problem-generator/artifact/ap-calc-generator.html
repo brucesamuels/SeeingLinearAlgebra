@@ -1,0 +1,2647 @@
+<title>AP Calculus Problem Generator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* ============================================================
+   Design tokens — "fountain pen on graph paper": a precise
+   academic-instrument palette, not a generic dashboard blue.
+   ============================================================ */
+:root {
+  --paper: #F5F6F1;
+  --paper-raised: #FBFBF8;
+  --paper-line: #DBDECF;
+  --ink: #1D2731;
+  --ink-soft: #5C6773;
+  --ink-faint: #8B93A0;
+  --accent: #2B5F8A;
+  --accent-deep: #1D4566;
+  --accent-soft: #E4EBF1;
+  --good: #2E7D53;
+  --good-soft: #E5F1E9;
+  --good-line: #A9CFB8;
+  --shadow: 0 1px 2px rgba(29,39,49,0.06), 0 8px 24px rgba(29,39,49,0.08);
+  --radius: 3px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12161C;
+    --paper-raised: #171C23;
+    --paper-line: #2B333D;
+    --ink: #E7E9EC;
+    --ink-soft: #98A1AC;
+    --ink-faint: #656F7B;
+    --accent: #7CB0DE;
+    --accent-deep: #A9CDEA;
+    --accent-soft: #1E2B38;
+    --good: #5CB988;
+    --good-soft: #16261E;
+    --good-line: #2E5A41;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12161C;
+  --paper-raised: #171C23;
+  --paper-line: #2B333D;
+  --ink: #E7E9EC;
+  --ink-soft: #98A1AC;
+  --ink-faint: #656F7B;
+  --accent: #7CB0DE;
+  --accent-deep: #A9CDEA;
+  --accent-soft: #1E2B38;
+  --good: #5CB988;
+  --good-soft: #16261E;
+  --good-line: #2E5A41;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image:
+    linear-gradient(var(--paper-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: -1px -1px;
+  color: var(--ink);
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body { background-image: none; } }
+:root[data-theme="dark"] body { background-image: none; }
+
+h1, h2 { font-family: "Newsreader", Georgia, "Times New Roman", serif; text-wrap: balance; }
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---- Shell ---- */
+
+.app-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 22px 64px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.app-header .mark {
+  font-family: "Newsreader", serif;
+  font-style: italic;
+  font-size: 2.6rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1;
+  flex: none;
+}
+.app-header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.app-header h1 em { font-style: normal; color: var(--accent); }
+.subtitle {
+  margin: 6px 0 26px;
+  max-width: 62ch;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+}
+
+/* ---- Controls ---- */
+
+.controls {
+  background: var(--paper-raised);
+  border: 1px solid var(--paper-line);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 22px 24px 24px;
+  margin-bottom: 30px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 18px 20px;
+}
+
+.control { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.control-wide { grid-column: span 2; }
+@media (max-width: 560px) { .control-wide { grid-column: span 1; } }
+
+.control label {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+select {
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 9px 10px;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+}
+select:hover { border-color: var(--ink-faint); }
+
+/* Units & Topics dropdown */
+
+.dropdown { position: relative; }
+.dropdown-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 9px 10px;
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.dropdown-toggle:hover { border-color: var(--ink-faint); }
+.dropdown-toggle #topicsSummary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chevron { color: var(--ink-faint); flex: none; }
+
+.dropdown-panel {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--paper-raised);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 10px;
+}
+.dropdown-panel-actions {
+  display: flex;
+  gap: 16px;
+  padding: 2px 4px 10px;
+  border-bottom: 1px solid var(--paper-line);
+  margin-bottom: 8px;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.link-btn:hover { color: var(--accent-deep); text-decoration: underline; }
+
+.unit-block { margin-bottom: 6px; }
+.unit-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.unit-block-header:hover { background: var(--accent-soft); }
+.unit-block-header label { font-weight: 700; font-size: 0.86rem; cursor: pointer; flex: 1; }
+.topic-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 4px 4px 26px;
+  font-size: 0.83rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+.topic-row:hover { background: var(--accent-soft); }
+.topic-row label { cursor: pointer; }
+.topic-code { font-family: "IBM Plex Mono", monospace; color: var(--ink-faint); margin-right: 5px; font-variant-numeric: tabular-nums; }
+
+/* View toggle switch */
+
+.toggle-row { display: flex; align-items: center; gap: 9px; padding-top: 5px; }
+.toggle-label { font-size: 0.83rem; color: var(--ink-soft); }
+.toggle-label.active { color: var(--ink); font-weight: 700; }
+.switch {
+  position: relative;
+  width: 42px;
+  height: 23px;
+  border-radius: 999px;
+  border: 1px solid var(--paper-line);
+  background: var(--ink-faint);
+  opacity: 0.55;
+  cursor: pointer;
+  flex: none;
+  padding: 0;
+}
+.switch[aria-checked="true"] { background: var(--accent); border-color: var(--accent-deep); opacity: 1; }
+.switch-knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  transition: left 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+}
+.switch[aria-checked="true"] .switch-knob { left: 21px; }
+
+/* Buttons */
+
+.action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--paper-line);
+}
+.btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.btn-primary { background: var(--accent); color: var(--paper-raised); }
+.btn-primary:hover { background: var(--accent-deep); }
+.btn-secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
+.btn-secondary:hover { background: var(--accent-soft); }
+.hint { font-size: 0.78rem; color: var(--ink-faint); }
+
+/* ---- Worksheet ---- */
+
+.worksheet {
+  background: var(--paper-raised);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 34px 38px 44px;
+}
+
+.worksheet-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 12px;
+}
+.worksheet-title-row h2 { margin: 0; font-size: 1.4rem; font-weight: 500; }
+.worksheet-meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.student-fields {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin: 16px 0 8px;
+  font-size: 0.9rem;
+}
+.field { display: flex; align-items: center; gap: 6px; color: var(--ink-soft); }
+.field .rule { display: inline-block; width: 150px; border-bottom: 1px solid var(--ink-faint); height: 1em; }
+
+.empty-state { color: var(--ink-soft); font-style: italic; }
+
+.problem-list { margin-top: 20px; }
+
+.problem {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--paper-line);
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.problem:last-child { border-bottom: none; }
+
+.problem-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 7px; flex-wrap: wrap; }
+.qnum { font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 1rem; color: var(--accent); }
+.meta {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.prompt { font-size: 0.98rem; margin-bottom: 11px; }
+.mathblock { display: inline-block; margin: 5px 0; font-size: 1.02rem; }
+.frac { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; margin: 0 2px; font-size: 0.85em; }
+.frac .num { border-bottom: 1px solid currentColor; padding: 0 3px; }
+.frac .den { padding: 0 3px; }
+
+/* Multiple choice */
+
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 22px; margin: 9px 0 4px; }
+@media (max-width: 520px) { .choices { grid-template-columns: 1fr; } }
+.choice { display: flex; gap: 8px; align-items: baseline; font-size: 0.94rem; padding: 4px 6px; border-radius: var(--radius); }
+.choice-key { font-family: "IBM Plex Mono", monospace; font-weight: 700; color: var(--ink-faint); flex: none; width: 1.2em; }
+.teacher-mode .choice.is-correct { background: var(--good-soft); outline: 1px solid var(--good-line); }
+.teacher-mode .choice.is-correct .choice-key { color: var(--good); }
+.teacher-mode .choice.is-correct::after { content: "✓"; color: var(--good); font-weight: 800; margin-left: auto; }
+
+/* Free response lines */
+
+.frq-lines { margin: 11px 0 4px; }
+.frq-lines .line { height: 27px; border-bottom: 1px solid var(--paper-line); }
+
+/* Answer key */
+
+.answer-block {
+  display: none;
+  margin-top: 11px;
+  padding: 11px 15px;
+  background: var(--good-soft);
+  border: 1px solid var(--good-line);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+.teacher-mode .answer-block { display: block; }
+.answer-block .answer-line { font-weight: 700; color: var(--good); margin-bottom: 6px; }
+.answer-block ol { margin: 4px 0 0; padding-left: 20px; }
+.answer-block li { margin-bottom: 3px; }
+
+.app-footer { margin-top: 26px; }
+.app-footer p { max-width: 62ch; color: var(--ink-faint); font-size: 0.8rem; }
+
+/* ---- Print: always crisp black-on-white regardless of theme ---- */
+
+@media print {
+  body { background: #fff !important; background-image: none !important; }
+  .no-print { display: none !important; }
+  .app-shell { max-width: none; padding: 0; }
+  .worksheet { border: none; border-radius: 0; box-shadow: none; padding: 0; background: #fff; }
+  .worksheet-title-row { border-bottom-color: #000; }
+  .problem { break-inside: avoid; border-bottom-color: #ddd; }
+  .answer-block { background: #f3f3f3 !important; border-color: #999 !important; }
+  .answer-block .answer-line { color: #000 !important; }
+  .teacher-mode .choice.is-correct { background: #f3f3f3 !important; outline-color: #999 !important; }
+  .teacher-mode .choice.is-correct .choice-key,
+  .teacher-mode .choice.is-correct::after { color: #000 !important; }
+  @page { margin: 0.7in; }
+}
+</style>
+
+<div class="app-shell">
+
+  <header class="app-header no-print">
+    <span class="mark" aria-hidden="true">∫</span>
+    <h1>AP Calculus <em>Problem Generator</em></h1>
+  </header>
+  <p class="subtitle no-print">Build a randomized AP Calculus AB/BC problem set by unit, topic, and difficulty — then print or save it as a PDF.</p>
+
+  <section class="controls no-print" aria-label="Problem set options">
+    <div class="control-grid">
+
+      <div class="control">
+        <label for="courseSelect">Course</label>
+        <select id="courseSelect">
+          <option value="ab">AP Calculus AB (Units 1–8)</option>
+          <option value="bc">AP Calculus BC (Units 1–10)</option>
+        </select>
+      </div>
+
+      <div class="control control-wide">
+        <label id="topicsLabel">Units &amp; Topics</label>
+        <div class="dropdown" id="topicsDropdown">
+          <button type="button" class="dropdown-toggle" id="topicsToggle" aria-haspopup="true" aria-expanded="false" aria-labelledby="topicsLabel">
+            <span id="topicsSummary">All units &amp; topics</span>
+            <span class="chevron">▾</span>
+          </button>
+          <div class="dropdown-panel" id="topicsPanel" hidden>
+            <div class="dropdown-panel-actions">
+              <button type="button" class="link-btn" id="selectAllBtn">Select All</button>
+              <button type="button" class="link-btn" id="clearAllBtn">Clear All</button>
+            </div>
+            <div id="unitList"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="control">
+        <label for="countSelect">Number of Questions</label>
+        <select id="countSelect">
+          <option value="5">5</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+          <option value="30">30</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="typeSelect">Question Type</label>
+        <select id="typeSelect">
+          <option value="mixed">Mixed (MC + FRQ)</option>
+          <option value="mc">Multiple Choice</option>
+          <option value="frq">Free Response</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="difficultySelect">Difficulty</label>
+        <select id="difficultySelect">
+          <option value="mixed">Mixed</option>
+          <option value="1">Easy</option>
+          <option value="2">Medium</option>
+          <option value="3">Hard</option>
+        </select>
+      </div>
+
+      <div class="control">
+        <label for="viewToggle">View</label>
+        <div class="toggle-row">
+          <span class="toggle-label" id="viewLabelStudent">Student</span>
+          <button type="button" class="switch" id="viewToggle" role="switch" aria-checked="false" aria-label="Toggle teacher view">
+            <span class="switch-knob"></span>
+          </button>
+          <span class="toggle-label" id="viewLabelTeacher">Teacher (Answer Key)</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="action-row">
+      <button type="button" class="btn btn-primary" id="generateBtn">Generate Problem Set</button>
+      <button type="button" class="btn btn-secondary" id="printBtn">Print / Save as PDF</button>
+      <span class="hint">Uses your browser's print dialog — choose "Save as PDF" as the destination.</span>
+    </div>
+  </section>
+
+  <main id="worksheet" class="worksheet">
+    <div class="worksheet-header">
+      <div class="worksheet-title-row">
+        <h2 id="worksheetTitle">AP Calculus Problem Set</h2>
+        <div class="worksheet-meta" id="worksheetMeta"></div>
+      </div>
+      <div class="student-fields" id="studentFields">
+        <div class="field"><span>Name:</span><span class="rule"></span></div>
+        <div class="field"><span>Date:</span><span class="rule"></span></div>
+        <div class="field"><span>Period:</span><span class="rule"></span></div>
+      </div>
+    </div>
+    <div id="problemList" class="problem-list">
+      <p class="empty-state">Choose your options above and click <strong>Generate Problem Set</strong> to begin.</p>
+    </div>
+  </main>
+
+  <footer class="app-footer no-print">
+    <p>Covers AP Calculus AB/BC units and topics per the College Board Course and Exam Description. Problems and numbers are randomly generated each time.</p>
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+ * core.js — random helpers, exact fraction arithmetic, and
+ * polynomial utilities used by the AP Calculus problem generators.
+ * ============================================================ */
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+function randNonZero(min, max) {
+  let v;
+  do { v = randInt(min, max); } while (v === 0);
+  return v;
+}
+function choice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while (b) { [a, b] = [b, a % b]; }
+  return a || 1;
+}
+
+class Frac {
+  constructor(n, d = 1) {
+    if (d === 0) throw new Error('Frac: division by zero');
+    if (!Number.isInteger(n) || !Number.isInteger(d)) {
+      // Allow float rounding safety net (shouldn't normally happen)
+      n = Math.round(n); d = Math.round(d);
+    }
+    if (d < 0) { n = -n; d = -d; }
+    const g = gcd(n, d);
+    this.n = g ? n / g : 0;
+    this.d = g ? d / g : 1;
+  }
+  add(o) { o = Frac.of(o); return new Frac(this.n * o.d + o.n * this.d, this.d * o.d); }
+  sub(o) { o = Frac.of(o); return new Frac(this.n * o.d - o.n * this.d, this.d * o.d); }
+  mul(o) { o = Frac.of(o); return new Frac(this.n * o.n, this.d * o.d); }
+  div(o) { o = Frac.of(o); return new Frac(this.n * o.d, this.d * o.n); }
+  neg() { return new Frac(-this.n, this.d); }
+  abs() { return this.n < 0 ? this.neg() : this; }
+  pow(k) {
+    if (k === 0) return new Frac(1, 1);
+    if (k > 0) return new Frac(Math.round(this.n ** k), Math.round(this.d ** k));
+    return new Frac(Math.round(this.d ** (-k)), Math.round(this.n ** (-k)));
+  }
+  isZero() { return this.n === 0; }
+  isNeg() { return this.n < 0; }
+  equals(o) { o = Frac.of(o); return this.n * o.d === o.n * this.d; }
+  gt(o) { o = Frac.of(o); return this.n * o.d > o.n * this.d; }
+  toFloat() { return this.n / this.d; }
+  toString() { return this.d === 1 ? `${this.n}` : `${this.n}/${this.d}`; }
+  static of(v) { return v instanceof Frac ? v : new Frac(v, 1); }
+}
+function F(n, d = 1) { return new Frac(n, d); }
+
+// ---- Polynomials: ascending-order arrays of Frac, index = power of x ----
+
+function polyTrim(p) {
+  const out = p.slice();
+  while (out.length > 1 && out[out.length - 1].isZero()) out.pop();
+  return out;
+}
+function polyAdd(a, b) {
+  const len = Math.max(a.length, b.length);
+  const out = [];
+  for (let i = 0; i < len; i++) out.push((a[i] || F(0)).add(b[i] || F(0)));
+  return polyTrim(out);
+}
+function polySub(a, b) { return polyAdd(a, b.map((c) => c.neg())); }
+function polyScale(a, k) { k = Frac.of(k); return polyTrim(a.map((c) => c.mul(k))); }
+function polyMul(a, b) {
+  const out = new Array(a.length + b.length - 1).fill(null).map(() => F(0));
+  for (let i = 0; i < a.length; i++) {
+    for (let j = 0; j < b.length; j++) out[i + j] = out[i + j].add(a[i].mul(b[j]));
+  }
+  return polyTrim(out);
+}
+function polyDeriv(p) {
+  if (p.length <= 1) return [F(0)];
+  const out = [];
+  for (let i = 1; i < p.length; i++) out.push(p[i].mul(F(i)));
+  return polyTrim(out);
+}
+function polyAntideriv(p, C = F(0)) {
+  const out = [C];
+  for (let i = 0; i < p.length; i++) out.push(p[i].div(F(i + 1)));
+  return polyTrim(out);
+}
+function polyEval(p, x) {
+  x = Frac.of(x);
+  let sum = F(0), xp = F(1);
+  for (let i = 0; i < p.length; i++) { sum = sum.add(p[i].mul(xp)); xp = xp.mul(x); }
+  return sum;
+}
+function polyEvalFloat(p, xFloat) {
+  let sum = 0, xp = 1;
+  for (let i = 0; i < p.length; i++) { sum += p[i].toFloat() * xp; xp *= xFloat; }
+  return sum;
+}
+function polyDegree(p) {
+  for (let i = p.length - 1; i >= 0; i--) if (!p[i].isZero()) return i;
+  return 0;
+}
+function polyLeadCoeff(p) { return p[polyDegree(p)]; }
+
+function linear(a, b) { return [F(b), F(a)]; } // a*x + b
+
+function randPoly(minDeg, maxDeg, coeffMin, coeffMax) {
+  const deg = randInt(minDeg, maxDeg);
+  const p = [];
+  for (let i = 0; i <= deg; i++) p.push(F(randInt(coeffMin, coeffMax)));
+  if (p[deg].isZero()) p[deg] = F(choice([1, -1]) * randInt(1, Math.max(1, coeffMax)));
+  return polyTrim(p);
+}
+
+// ---- HTML formatting ----
+
+function termParts(c, i, varName) {
+  if (c.isZero()) return null;
+  const neg = c.isNeg();
+  const abs = neg ? c.neg() : c;
+  const coefficientIsOne = abs.equals(F(1));
+  const coefStr = (coefficientIsOne && i !== 0) ? '' : abs.toString();
+  const varStr = i === 0 ? '' : (i === 1 ? varName : `${varName}<sup>${i}</sup>`);
+  return { neg, text: coefStr + varStr };
+}
+function polyToHTML(p, varName = 'x') {
+  const terms = [];
+  for (let i = p.length - 1; i >= 0; i--) {
+    const t = termParts(p[i], i, varName);
+    if (t) terms.push(t);
+  }
+  if (terms.length === 0) return '0';
+  let html = (terms[0].neg ? '−' : '') + terms[0].text;
+  for (let i = 1; i < terms.length; i++) {
+    html += terms[i].neg ? ` − ${terms[i].text}` : ` + ${terms[i].text}`;
+  }
+  return html;
+}
+function fracHTML(f) {
+  if (f.d === 1) return `${f.n}`;
+  return `<span class="frac"><span class="num">${f.n}</span><span class="den">${f.d}</span></span>`;
+}
+function signed(f) { return f.isNeg() ? `−${f.neg()}` : `${f}`; }
+function fracPiHTML(f) {
+  if (f.isZero()) return '0';
+  const abs = f.abs();
+  const coef = abs.equals(F(1)) ? '' : (abs.d === 1 ? abs.toString() : `(${abs.toString()})`);
+  return (f.isNeg() ? '−' : '') + coef + 'π';
+}
+
+// ---- Distractor helpers for numeric (Frac) answers ----
+
+function makeNumericDistractors(correct) {
+  const pool = new Set([correct.toString()]);
+  const out = [];
+  const candidates = [
+    correct.neg(),
+    correct.add(F(1)),
+    correct.sub(F(1)),
+    correct.mul(F(2)),
+    correct.mul(F(-1)).add(F(1)),
+    correct.add(F(2)),
+    correct.sub(F(2)),
+  ];
+  for (const c of candidates) {
+    const s = c.toString();
+    if (!pool.has(s)) { pool.add(s); out.push(c.toString()); }
+    if (out.length === 3) break;
+  }
+  let guard = 0;
+  while (out.length < 3 && guard < 50) {
+    guard++;
+    const jitter = F(correct.n * correct.d + randNonZero(-4, 4) * Math.max(1, correct.d), correct.d * correct.d);
+    const s = jitter.toString();
+    if (!pool.has(s)) { pool.add(s); out.push(s); }
+  }
+  return out;
+}
+
+function makeDecimalDistractors(correctValue, decimals = 3) {
+  const fmt = (v) => v.toFixed(decimals);
+  const pool = new Set([fmt(correctValue)]);
+  const out = [];
+  const candidates = [
+    -correctValue,
+    correctValue + 1,
+    correctValue - 1,
+    correctValue * 2,
+    correctValue / 2,
+  ];
+  for (const c of candidates) {
+    const s = fmt(c);
+    if (!pool.has(s)) { pool.add(s); out.push(s); }
+    if (out.length === 3) break;
+  }
+  let guard = 0;
+  while (out.length < 3 && guard < 50) {
+    guard++;
+    const jitter = correctValue + (randNonZero(-5, 5)) * Math.max(0.1, Math.abs(correctValue) * 0.1 || 1);
+    const s = fmt(jitter);
+    if (!pool.has(s)) { pool.add(s); out.push(s); }
+  }
+  return out;
+}
+
+const PYTHAGOREAN_TRIPLES = [
+  [3, 4, 5], [6, 8, 10], [5, 12, 13], [8, 15, 17], [9, 12, 15],
+  [7, 24, 25], [20, 21, 29], [9, 40, 41], [12, 16, 20], [10, 24, 26],
+];
+</script>
+
+<script>
+/* ============================================================
+ * expr.js — a small symbolic expression engine used to compose
+ * AP Calculus problems from primitives (polynomials, sin/cos,
+ * exp, ln, integer powers) instead of picking a single fixed
+ * function shape per topic.
+ *
+ * diff() applies the standard rules mechanically, so it is exact
+ * by construction for any tree built from these primitives — no
+ * general symbolic integration is attempted anywhere; see
+ * `randomAntiderivative` for how integration problems are
+ * generated instead (build the answer, then differentiate it).
+ * ============================================================ */
+
+function cst(v) { return { op: 'const', value: Frac.of(v) }; }
+const X_NODE = { op: 'x' };
+function addN(...args) {
+  args = args.filter((a) => a);
+  if (args.length === 0) return cst(0);
+  if (args.length === 1) return args[0];
+  return { op: 'add', args };
+}
+function mulN(...args) {
+  args = args.filter((a) => a);
+  if (args.length === 0) return cst(1);
+  if (args.length === 1) return args[0];
+  return { op: 'mul', args };
+}
+function powN(base, n) {
+  if (n === 0) return cst(1);
+  if (n === 1) return base;
+  return { op: 'pow', base, n };
+}
+function divN(num, den) { return { op: 'div', num, den }; }
+function sinE(arg) { return { op: 'sin', arg }; }
+function cosE(arg) { return { op: 'cos', arg }; }
+function expE(arg) { return { op: 'exp', arg }; }
+function lnE(arg, abs = false) { return { op: 'ln', arg, abs }; }
+
+/* ---- Differentiation (exact, mechanical, closed-form by construction) ---- */
+
+function diff(node) {
+  switch (node.op) {
+    case 'const': return cst(0);
+    case 'x': return cst(1);
+    case 'add': return addN(...node.args.map(diff));
+    case 'mul':
+      return addN(...node.args.map((_, i) => mulN(diff(node.args[i]), ...node.args.filter((_, j) => j !== i))));
+    case 'pow': {
+      if (node.n === 0) return cst(0);
+      return mulN(cst(node.n), powN(node.base, node.n - 1), diff(node.base));
+    }
+    case 'div': {
+      const { num, den } = node;
+      return divN(addN(mulN(diff(num), den), mulN(cst(-1), num, diff(den))), powN(den, 2));
+    }
+    case 'sin': return mulN(cosE(node.arg), diff(node.arg));
+    case 'cos': return mulN(cst(-1), sinE(node.arg), diff(node.arg));
+    case 'exp': return mulN(expE(node.arg), diff(node.arg));
+    case 'ln': return divN(diff(node.arg), node.arg);
+    default: throw new Error(`diff: unknown op ${node.op}`);
+  }
+}
+
+/*
+ * diffBuggy — mirrors diff() but injects one systematic student error, used
+ * to generate multiple-choice distractors that are plausible rather than
+ * arbitrary. `bug.noChain` skips multiplying by the inner derivative at
+ * every chain-rule step; `bug.cosSign` drops the negative sign from
+ * d/dx[cos]. Quotient rule (div) is left correct — the bug modes only
+ * target chain-rule-style mistakes, which is what the compositional
+ * generators actually exercise.
+ */
+function diffBuggy(node, bug) {
+  switch (node.op) {
+    case 'const': return cst(0);
+    case 'x': return cst(1);
+    case 'add': return addN(...node.args.map((a) => diffBuggy(a, bug)));
+    case 'mul':
+      return addN(...node.args.map((_, i) => mulN(diffBuggy(node.args[i], bug), ...node.args.filter((_, j) => j !== i))));
+    case 'pow': {
+      if (node.n === 0) return cst(0);
+      const inner = bug.noChain ? cst(1) : diffBuggy(node.base, bug);
+      return mulN(cst(node.n), powN(node.base, node.n - 1), inner);
+    }
+    case 'div': return diff(node);
+    case 'sin': {
+      const inner = bug.noChain ? cst(1) : diffBuggy(node.arg, bug);
+      return mulN(cosE(node.arg), inner);
+    }
+    case 'cos': {
+      const inner = bug.noChain ? cst(1) : diffBuggy(node.arg, bug);
+      return bug.cosSign ? mulN(sinE(node.arg), inner) : mulN(cst(-1), sinE(node.arg), inner);
+    }
+    case 'exp': {
+      const inner = bug.noChain ? cst(1) : diffBuggy(node.arg, bug);
+      return mulN(expE(node.arg), inner);
+    }
+    case 'ln': {
+      const inner = bug.noChain ? cst(1) : diffBuggy(node.arg, bug);
+      return divN(inner, node.arg);
+    }
+    default: throw new Error(`diffBuggy: unknown op ${node.op}`);
+  }
+}
+
+/* ---- Simplification: constant folding + structural cleanup only.
+ * Deliberately does NOT collect like terms across arbitrary subtrees (no
+ * general polynomial normal form) — the random builders avoid generating
+ * like terms in the first place, which keeps this simple and correct. ---- */
+
+function simplify(node) {
+  switch (node.op) {
+    case 'const': case 'x': return node;
+    case 'add': {
+      const flat = [];
+      for (const a of node.args.map(simplify)) {
+        if (a.op === 'add') flat.push(...a.args); else flat.push(a);
+      }
+      let constSum = F(0);
+      const rest = [];
+      for (const a of flat) { if (a.op === 'const') constSum = constSum.add(a.value); else rest.push(a); }
+      const parts = constSum.isZero() ? rest : [cst(constSum), ...rest];
+      return addN(...parts);
+    }
+    case 'mul': {
+      const flat = [];
+      for (const a of node.args.map(simplify)) {
+        if (a.op === 'mul') flat.push(...a.args); else flat.push(a);
+      }
+      let constProd = F(1);
+      const rest = [];
+      for (const a of flat) { if (a.op === 'const') constProd = constProd.mul(a.value); else rest.push(a); }
+      if (constProd.isZero()) return cst(0);
+      const parts = constProd.equals(F(1)) ? rest : [cst(constProd), ...rest];
+      return mulN(...parts);
+    }
+    case 'pow': {
+      const base = simplify(node.base);
+      if (node.n === 0) return cst(1);
+      if (node.n === 1) return base;
+      if (base.op === 'const') return cst(base.value.pow(node.n));
+      return powN(base, node.n);
+    }
+    case 'div': {
+      const num = simplify(node.num), den = simplify(node.den);
+      if (num.op === 'const' && num.value.isZero()) return cst(0);
+      if (num.op === 'const' && den.op === 'const' && !den.value.isZero()) return cst(num.value.div(den.value));
+      if (den.op === 'const') return simplify(mulN(cst(F(1).div(den.value)), num));
+      return divN(num, den);
+    }
+    case 'sin': { const arg = simplify(node.arg); return arg.op === 'const' && arg.value.isZero() ? cst(0) : sinE(arg); }
+    case 'cos': { const arg = simplify(node.arg); return arg.op === 'const' && arg.value.isZero() ? cst(1) : cosE(arg); }
+    case 'exp': { const arg = simplify(node.arg); return arg.op === 'const' && arg.value.isZero() ? cst(1) : expE(arg); }
+    case 'ln': { const arg = simplify(node.arg); return lnE(arg, node.abs); }
+    default: throw new Error(`simplify: unknown op ${node.op}`);
+  }
+}
+
+/* ---- Numeric / exact evaluation ---- */
+
+function evalNum(node, xVal) {
+  switch (node.op) {
+    case 'const': return node.value.toFloat();
+    case 'x': return xVal;
+    case 'add': return node.args.reduce((s, a) => s + evalNum(a, xVal), 0);
+    case 'mul': return node.args.reduce((p, a) => p * evalNum(a, xVal), 1);
+    case 'pow': return Math.pow(evalNum(node.base, xVal), node.n);
+    case 'div': return evalNum(node.num, xVal) / evalNum(node.den, xVal);
+    case 'sin': return Math.sin(evalNum(node.arg, xVal));
+    case 'cos': return Math.cos(evalNum(node.arg, xVal));
+    case 'exp': return Math.exp(evalNum(node.arg, xVal));
+    case 'ln': return Math.log(Math.abs(evalNum(node.arg, xVal)));
+    default: throw new Error(`evalNum: unknown op ${node.op}`);
+  }
+}
+
+/** Exact (Frac) evaluation. Returns null wherever the subtree is
+ * transcendental (sin/cos/exp/ln) or divides by a non-constant, since
+ * those are not exact in general. */
+function evalExact(node, xFrac) {
+  switch (node.op) {
+    case 'const': return node.value;
+    case 'x': return xFrac;
+    case 'add': {
+      let s = F(0);
+      for (const a of node.args) { const v = evalExact(a, xFrac); if (v === null) return null; s = s.add(v); }
+      return s;
+    }
+    case 'mul': {
+      let p = F(1);
+      for (const a of node.args) { const v = evalExact(a, xFrac); if (v === null) return null; p = p.mul(v); }
+      return p;
+    }
+    case 'pow': { const b = evalExact(node.base, xFrac); return b === null ? null : b.pow(node.n); }
+    case 'div': {
+      const n = evalExact(node.num, xFrac), d = evalExact(node.den, xFrac);
+      if (n === null || d === null || d.isZero()) return null;
+      return n.div(d);
+    }
+    default: return null; // sin/cos/exp/ln
+  }
+}
+
+/** Evaluate exactly when possible, else fall back to a rounded decimal
+ * (matches how the AP exam treats calculator-active numeric answers). */
+function evalSmart(node, x0, decimals = 3) {
+  const exact = evalExact(node, F(x0));
+  if (exact !== null) return { exact: true, str: exact.toString(), value: exact.toFloat() };
+  const value = evalNum(node, x0);
+  return { exact: false, str: value.toFixed(decimals), value };
+}
+
+/* ---- HTML rendering ---- */
+
+function isNegConst(node) { return node.op === 'const' && node.value.isNeg(); }
+
+/** Split a node into {sign, mag} where mag has a non-negative leading
+ * coefficient — used so add() can render "a − b" instead of "a + −b". */
+function signSplit(node) {
+  if (node.op === 'const') return node.value.isNeg() ? { sign: -1, mag: cst(node.value.neg()) } : { sign: 1, mag: node };
+  if (node.op === 'mul' && node.args[0] && node.args[0].op === 'const' && node.args[0].value.isNeg()) {
+    const negated = cst(node.args[0].value.neg());
+    const restArgs = node.args.slice(1);
+    const magArgs = negated.value.equals(F(1)) ? restArgs : [negated, ...restArgs];
+    return { sign: -1, mag: mulN(...magArgs) };
+  }
+  return { sign: 1, mag: node };
+}
+
+function wrapIfNeeded(node, context) {
+  const html = renderNode(node);
+  if (node.op === 'add') return `(${html})`;
+  if (context === 'powBase' && (node.op === 'mul' || node.op === 'div')) return `(${html})`;
+  return html;
+}
+
+function renderNode(node) {
+  switch (node.op) {
+    case 'const': {
+      const v = node.value;
+      return v.isNeg() ? `−${fracHTML(v.neg())}` : fracHTML(v);
+    }
+    case 'x': return 'x';
+    case 'add': {
+      const parts = node.args.map((a) => signSplit(a));
+      let html = (parts[0].sign < 0 ? '−' : '') + renderNode(parts[0].mag);
+      for (let i = 1; i < parts.length; i++) {
+        html += parts[i].sign < 0 ? ` − ${renderNode(parts[i].mag)}` : ` + ${renderNode(parts[i].mag)}`;
+      }
+      return html;
+    }
+    case 'mul': {
+      // NOTE: unlike the 'add' case, this does NOT rely on a caller
+      // having sign-split the node first — a mul with a negative leading
+      // coefficient must render its own '−' whether it appears standalone
+      // or nested inside pow/div/sin/etc, since only 'add' terms get
+      // pre-split via signSplit() before reaching here.
+      let coefHTML = '';
+      let neg = false;
+      let rest = node.args;
+      if (node.args[0] && node.args[0].op === 'const') {
+        const c = node.args[0].value;
+        rest = node.args.slice(1);
+        neg = c.isNeg();
+        const absC = neg ? c.neg() : c;
+        if (!absC.equals(F(1))) coefHTML = fracHTML(absC);
+      }
+      const restHTML = rest.map((r) => wrapIfNeeded(r, 'mulFactor')).join('·');
+      const body = restHTML ? `${coefHTML}${restHTML}` : (coefHTML || '1');
+      return neg ? `−${body}` : body;
+    }
+    case 'pow': return `${wrapIfNeeded(node.base, 'powBase')}<sup>${node.n}</sup>`;
+    case 'div': return `(${renderNode(node.num)}) / (${renderNode(node.den)})`;
+    case 'sin': return `sin(${renderNode(node.arg)})`;
+    case 'cos': return `cos(${renderNode(node.arg)})`;
+    case 'exp': return `e<sup>${renderNode(node.arg)}</sup>`;
+    case 'ln': return node.abs ? `ln|${renderNode(node.arg)}|` : `ln(${renderNode(node.arg)})`;
+    default: throw new Error(`renderNode: unknown op ${node.op}`);
+  }
+}
+
+function toHTML(node) { return renderNode(simplify(node)); }
+
+/* ---- Bridge from core.js's Frac-array polynomials ---- */
+
+function polyToNode(poly) {
+  const terms = [];
+  for (let i = 0; i < poly.length; i++) {
+    if (poly[i].isZero()) continue;
+    terms.push(mulN(cst(poly[i]), powN(X_NODE, i)));
+  }
+  return terms.length ? addN(...terms) : cst(0);
+}
+
+/* ---- Generic mutation helpers (for distractors) ---- */
+
+function scaleLeadingCoef(node, factor) {
+  if (node.op === 'mul' && node.args[0] && node.args[0].op === 'const') {
+    return mulN(cst(node.args[0].value.mul(factor)), ...node.args.slice(1));
+  }
+  return mulN(cst(factor), node);
+}
+function flipRandomTermSign(node) {
+  if (node.op === 'add' && node.args.length > 0) {
+    const idx = randInt(0, node.args.length - 1);
+    return addN(...node.args.map((a, i) => (i === idx ? mulN(cst(-1), a) : a)));
+  }
+  return mulN(cst(-1), node);
+}
+
+/* ---- Random expression builders ---- */
+
+function randomLinear(coeffRange, opts = {}) {
+  const a = opts.forcePositive ? randInt(1, coeffRange) : randNonZero(-coeffRange, coeffRange);
+  const b = randInt(-coeffRange, coeffRange);
+  return addN(mulN(cst(a), X_NODE), cst(b));
+}
+
+/** A linear inner function guaranteed positive for all x >= 0 (positive
+ * slope, positive intercept) — used wherever the expression will actually
+ * be numerically evaluated at nonnegative bounds through an ln(), so
+ * Math.log() never hits zero/negative input. */
+function randomPositiveLinear(coeffRange) {
+  const a = randInt(1, coeffRange);
+  const b = randInt(1, coeffRange);
+  return addN(mulN(cst(a), X_NODE), cst(b));
+}
+
+const KIND_SETS = {
+  1: ['poly', 'sin', 'cos', 'exp'],
+  2: ['poly', 'sin', 'cos', 'exp', 'ln', 'pow'],
+  3: ['poly', 'sin', 'cos', 'exp', 'ln', 'pow', 'compose'],
+};
+
+function randomAtomicTerm(difficulty, opts = {}) {
+  const kinds = opts.kinds || KIND_SETS[difficulty] || KIND_SETS[3];
+  const kind = choice(kinds);
+  const coeff = randNonZero(-6, 6);
+  const coeffRange = opts.coeffRange || (difficulty === 1 ? 4 : difficulty === 2 ? 6 : 8);
+  switch (kind) {
+    case 'poly': {
+      const n = randInt(0, 3);
+      return n === 0 ? cst(coeff) : mulN(cst(coeff), powN(X_NODE, n));
+    }
+    case 'sin': return mulN(cst(coeff), sinE(randomLinear(coeffRange)));
+    case 'cos': return mulN(cst(coeff), cosE(randomLinear(coeffRange)));
+    case 'exp': return mulN(cst(coeff), expE(randomLinear(coeffRange)));
+    case 'ln': return mulN(cst(coeff), lnE(randomLinear(coeffRange)));
+    case 'pow': {
+      const n = randInt(2, 4);
+      return mulN(cst(coeff), powN(randomLinear(coeffRange), n));
+    }
+    case 'compose': {
+      const outer = choice(['sin', 'cos', 'exp', 'ln']);
+      const innerKind = choice(['sinInner', 'expInner', 'powInner']);
+      const inner = innerKind === 'sinInner' ? sinE(randomLinear(3))
+        : innerKind === 'expInner' ? expE(randomLinear(3))
+          : powN(randomLinear(3), randInt(2, 3));
+      const wrapped = outer === 'sin' ? sinE(inner) : outer === 'cos' ? cosE(inner) : outer === 'exp' ? expE(inner) : lnE(inner);
+      return mulN(cst(coeff), wrapped);
+    }
+    default: throw new Error(`randomAtomicTerm: unknown kind ${kind}`);
+  }
+}
+
+function randomExpr(difficulty) {
+  const numTerms = difficulty === 1 ? 2 : difficulty === 2 ? 3 : 4;
+  // Retry if the terms happen to cancel (e.g. "−2x + 2x"): not just a
+  // distractor-generation headache, it's a degenerate, uninteresting
+  // problem ("f'(x) = 0" for no pedagogical reason) that shouldn't be
+  // handed to a student.
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const terms = [];
+    for (let i = 0; i < numTerms; i++) terms.push(randomAtomicTerm(difficulty));
+    const f = simplify(addN(...terms));
+    const fp = simplify(diff(f));
+    if (!(fp.op === 'const' && fp.value.isZero())) return f;
+  }
+  return simplify(addN(randomAtomicTerm(difficulty), mulN(cst(randNonZero(1, 5)), powN(X_NODE, 2))));
+}
+
+/** A single (non-sum) composed term guaranteed to need the chain rule —
+ * for chain-rule-specific problems, never degenerates to a bare polynomial. */
+function randomComposedSingle(difficulty) {
+  if (difficulty === 3 && Math.random() < 0.6) {
+    return simplify(randomAtomicTerm(difficulty, { kinds: ['compose'] }));
+  }
+  const kinds = difficulty === 1 ? ['sin', 'cos', 'exp'] : ['sin', 'cos', 'exp', 'ln', 'pow'];
+  return simplify(randomAtomicTerm(difficulty, { kinds }));
+}
+
+/** Build an antiderivative F and its derivative f = F'(x) (simplified),
+ * by constructing F directly and differentiating — guarantees f has a
+ * known exact antiderivative without any symbolic integration. */
+function randomAntiderivative(difficulty) {
+  const outerChoices = difficulty === 1 ? ['pow'] : difficulty === 2 ? ['pow', 'sin', 'cos'] : ['pow', 'sin', 'cos', 'exp', 'ln'];
+  const outer = choice(outerChoices);
+  const coeffRange = difficulty === 1 ? 3 : difficulty === 2 ? 4 : 5;
+  // ln's inner must stay positive across the bounds these antiderivatives
+  // get numerically evaluated at (integers roughly in [0, 5] — see the
+  // 6.1/8.1 generators), otherwise Math.log() hits zero or a negative
+  // input and produces -Infinity/NaN.
+  const inner = outer === 'ln' ? randomPositiveLinear(coeffRange) : randomLinear(coeffRange);
+  const coef = randNonZero(-4, 4);
+  let F_;
+  if (outer === 'pow') { const n = randInt(2, difficulty === 1 ? 3 : 5); F_ = mulN(cst(coef), powN(inner, n)); }
+  else if (outer === 'sin') F_ = mulN(cst(coef), sinE(inner));
+  else if (outer === 'cos') F_ = mulN(cst(coef), cosE(inner));
+  else if (outer === 'exp') F_ = mulN(cst(coef), expE(inner));
+  else F_ = mulN(cst(coef), lnE(inner, true));
+  F_ = simplify(F_);
+  const f = simplify(diff(F_));
+  return { F: F_, f, inner, outer };
+}
+</script>
+
+<script>
+/* ============================================================
+ * curriculum.js — AP Calculus AB/BC units and topics used to
+ * populate the Unit/Topic selector. Every topic listed here has
+ * a matching generator (see the `topic` field on each generator's
+ * output, below).
+ * ============================================================ */
+
+const AP_CALC_CURRICULUM = [
+  {
+    unit: 1, course: 'both', name: 'Limits and Continuity',
+    topics: [
+      { code: '1.1', name: 'Evaluating Limits by Factoring' },
+      { code: '1.2', name: 'Limits at Infinity (End Behavior)' },
+      { code: '1.3', name: 'Continuity: Solving for a Constant' },
+    ],
+  },
+  {
+    unit: 2, course: 'both', name: 'Differentiation: Basic Rules',
+    topics: [
+      { code: '2.1', name: 'The Power Rule' },
+      { code: '2.2', name: 'Derivatives of Trig, Exponential & Log Sums' },
+      { code: '2.3', name: 'The Product Rule' },
+      { code: '2.4', name: 'The Quotient Rule' },
+    ],
+  },
+  {
+    unit: 3, course: 'both', name: 'Composite, Implicit & Inverse Functions',
+    topics: [
+      { code: '3.1', name: 'The Chain Rule (Evaluate Numerically)' },
+      { code: '3.2', name: 'The Chain Rule (Symbolic Derivative)' },
+      { code: '3.3', name: 'Implicit Differentiation' },
+      { code: '3.4', name: 'Derivatives of Inverse Functions' },
+    ],
+  },
+  {
+    unit: 4, course: 'both', name: 'Contextual Applications of Differentiation',
+    topics: [
+      { code: '4.1', name: 'Motion: Position, Velocity & Acceleration' },
+      { code: '4.2', name: 'Related Rates' },
+      { code: '4.3', name: 'Local Linearization (Tangent Line Approximation)' },
+      { code: '4.4', name: "L'Hôpital's Rule" },
+    ],
+  },
+  {
+    unit: 5, course: 'both', name: 'Analytical Applications of Differentiation',
+    topics: [
+      { code: '5.1', name: 'Increasing/Decreasing & the First Derivative Test' },
+      { code: '5.2', name: 'Concavity & the Second Derivative Test' },
+      { code: '5.3', name: 'Optimization Problems' },
+    ],
+  },
+  {
+    unit: 6, course: 'both', name: 'Integration and Accumulation of Change',
+    topics: [
+      { code: '6.1', name: 'Definite Integrals (FTC)' },
+      { code: '6.2', name: 'Accumulation Functions (FTC Part 1)' },
+      { code: '6.3', name: 'Antiderivatives by u-Substitution' },
+    ],
+  },
+  {
+    unit: 7, course: 'both', name: 'Differential Equations',
+    topics: [
+      { code: '7.1', name: 'Separable Differential Equations' },
+      { code: '7.2', name: 'Exponential Growth and Decay' },
+    ],
+  },
+  {
+    unit: 8, course: 'both', name: 'Applications of Integration',
+    topics: [
+      { code: '8.1', name: 'Average Value of a Function' },
+      { code: '8.2', name: 'Area Between Two Curves' },
+      { code: '8.3', name: 'Volumes of Revolution (Disk/Washer)' },
+    ],
+  },
+  {
+    unit: 9, course: 'bc', name: 'Parametric, Polar & Vector-Valued Functions',
+    topics: [
+      { code: '9.1', name: 'Derivatives of Parametric Equations' },
+      { code: '9.2', name: 'Area of a Polar Region' },
+    ],
+  },
+  {
+    unit: 10, course: 'bc', name: 'Infinite Sequences and Series',
+    topics: [
+      { code: '10.1', name: 'Geometric Series' },
+      { code: '10.2', name: 'Maclaurin Polynomials' },
+      { code: '10.3', name: 'Radius of Convergence (Ratio Test)' },
+    ],
+  },
+];
+</script>
+
+<script>
+/* ============================================================
+ * generators.js — hand-written randomized AP Calculus problem
+ * generators. Every generator returns:
+ *   { unit, topic, topicName, difficulty,
+ *     stem, answerHTML, solution:[...], wrongHTML:[3 strings] }
+ * All numeric work uses the exact Frac/polynomial helpers above,
+ * so answers are exact fractions wherever the math is rational.
+ * ============================================================ */
+
+/* ---- Unit 1 — Limits and Continuity ---- */
+
+function genLimitFactor(difficulty) {
+  const range = difficulty === 1 ? [-6, 6] : difficulty === 2 ? [-8, 8] : [-10, 10];
+  const r = randNonZero(range[0], range[1]);
+  let s; do { s = randNonZero(range[0], range[1]); } while (s === r);
+  const a = difficulty === 1 ? 1 : randNonZero(-3, 3);
+
+  let numHTML, denHTML, answer, steps;
+  if (difficulty < 3) {
+    const num = polyScale(polyMul([F(-r), F(1)], [F(-s), F(1)]), a);
+    const den = [F(-r), F(1)];
+    numHTML = polyToHTML(num); denHTML = polyToHTML(den);
+    answer = F(a).mul(F(r - s));
+    steps = [
+      `Factor the numerator: ${a === 1 ? '' : a + '·'}(x − (${r}))(x − (${s})).`,
+      `Cancel the common factor (x − (${r})) from numerator and denominator (valid since x ≠ ${r}).`,
+      `The simplified function is ${a === 1 ? '' : a + '·'}(x − (${s})).`,
+      `Substitute x = ${r}: ${a === 1 ? '' : a + '·'}(${r} − (${s})) = ${answer.toString()}.`,
+    ];
+  } else {
+    let t; do { t = randNonZero(range[0], range[1]); } while (t === r || t === s);
+    const num = polyScale(polyMul([F(-r), F(1)], [F(-s), F(1)]), a);
+    const den = polyMul([F(-r), F(1)], [F(-t), F(1)]);
+    numHTML = polyToHTML(num); denHTML = polyToHTML(den);
+    answer = F(a).mul(F(r - s)).div(F(r - t));
+    steps = [
+      `Factor: numerator = ${a === 1 ? '' : a + '·'}(x−(${r}))(x−(${s})), denominator = (x−(${r}))(x−(${t})).`,
+      `Cancel the common factor (x − (${r})).`,
+      `The simplified function is ${a === 1 ? '' : a + '·'}(x−(${s})) / (x−(${t})).`,
+      `Substitute x = ${r}: answer = ${answer.toString()}.`,
+    ];
+  }
+  const stem = `Evaluate the limit:<br><span class="mathblock">lim<sub>x→${r}</sub> [ (${numHTML}) / (${denHTML}) ]</span>`;
+  return {
+    unit: 1, topic: '1.1', topicName: 'Evaluating Limits by Factoring', difficulty, stem,
+    answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer),
+  };
+}
+
+function genLimitInfinity(difficulty) {
+  const maxDeg = difficulty === 1 ? 2 : difficulty === 2 ? 3 : 4;
+  const numDeg = randInt(1, maxDeg);
+  const denDeg = randInt(1, maxDeg);
+  const coeffMax = difficulty === 1 ? 6 : difficulty === 2 ? 9 : 12;
+  const numLead = randNonZero(-coeffMax, coeffMax);
+  const denLead = randNonZero(-coeffMax, coeffMax);
+  const num = randPoly(numDeg, numDeg, -coeffMax, coeffMax); num[numDeg] = F(numLead);
+  const den = randPoly(denDeg, denDeg, -coeffMax, coeffMax); den[denDeg] = F(denLead);
+  const toNegInf = difficulty === 3 && Math.random() < 0.5;
+  const arrow = toNegInf ? '−∞' : '∞';
+
+  let answerHTML, steps, wrongHTML;
+  if (numDeg < denDeg) {
+    answerHTML = '0';
+    steps = [
+      `Compare degrees: the numerator's degree (${numDeg}) is less than the denominator's degree (${denDeg}).`,
+      `When the denominator grows faster, the fraction shrinks to 0 as x → ${arrow}.`,
+    ];
+    wrongHTML = ['∞', '−∞', F(numLead).div(F(denLead)).toString()];
+  } else if (numDeg === denDeg) {
+    const val = F(numLead).div(F(denLead));
+    answerHTML = val.toString();
+    steps = [
+      `Both polynomials have the same degree (${numDeg}), so the limit equals the ratio of leading coefficients.`,
+      `Leading coefficients: ${numLead} (numerator), ${denLead} (denominator).`,
+      `Limit = ${numLead}/${denLead} = ${val.toString()}.`,
+    ];
+    wrongHTML = makeNumericDistractors(val);
+  } else {
+    const degDiff = numDeg - denDeg;
+    let sign = Math.sign(numLead / denLead);
+    if (toNegInf && degDiff % 2 === 1) sign = -sign;
+    answerHTML = sign > 0 ? '∞' : '−∞';
+    steps = [
+      `The numerator's degree (${numDeg}) is greater than the denominator's degree (${denDeg}), so the limit is infinite.`,
+      `The sign is determined by the ratio of leading coefficients (${numLead}/${denLead})${toNegInf ? ` and the parity of x<sup>${degDiff}</sup> as x → −∞` : ''}.`,
+      `Limit = ${answerHTML}.`,
+    ];
+    wrongHTML = [sign > 0 ? '−∞' : '∞', '0', F(numLead).div(F(denLead)).toString()];
+  }
+  const stem = `Evaluate the limit:<br><span class="mathblock">lim<sub>x→${arrow}</sub> [ (${polyToHTML(num)}) / (${polyToHTML(den)}) ]</span>`;
+  return { unit: 1, topic: '1.2', topicName: 'Limits at Infinity (End Behavior)', difficulty, stem, answerHTML, solution: steps, wrongHTML };
+}
+
+function genContinuityK(difficulty) {
+  const range = difficulty === 1 ? [-5, 5] : difficulty === 2 ? [-7, 7] : [-9, 9];
+  const c = randNonZero(difficulty === 1 ? 1 : 2, difficulty === 1 ? 4 : 6) * choice([1, -1]);
+  const A = randNonZero(range[0], range[1]);
+  const B = randInt(range[0], range[1]);
+  const M = randInt(range[0], range[1]);
+  const left = F(A).mul(F(c)).add(F(B));
+  const K = left.sub(F(M)).div(F(c * c));
+  const stem = `The function f is defined by<br>` +
+    `<span class="mathblock">f(x) = ${polyToHTML(linear(A, B))}, &nbsp; x &lt; ${c}<br>` +
+    `f(x) = kx<sup>2</sup> ${M >= 0 ? '+' : '−'} ${Math.abs(M)}, &nbsp; x ≥ ${c}</span><br>` +
+    `For what value of k is f continuous at x = ${c}?`;
+  const steps = [
+    `For continuity at x = ${c}, the two pieces must agree: ${A}(${c}) + ${B} = k(${c})<sup>2</sup> + ${M}.`,
+    `Simplify the left side: ${left.toString()}.`,
+    `Solve for k: k = (${left.toString()} − ${M}) / ${c * c} = ${K.toString()}.`,
+  ];
+  return { unit: 1, topic: '1.3', topicName: 'Continuity: Solving for a Constant', difficulty, stem, answerHTML: K.toString(), solution: steps, wrongHTML: makeNumericDistractors(K) };
+}
+
+/* ---- Unit 2 — Differentiation: Basic Rules ---- */
+
+function genPowerRule(difficulty) {
+  const maxDeg = difficulty === 1 ? 3 : difficulty === 2 ? 4 : 5;
+  const p = randPoly(2, maxDeg, -9, 9);
+  const D = polyDeriv(p);
+  const correctHTML = polyToHTML(D);
+
+  const wrong1 = polyTrim(p.map((c, i) => (i === 0 ? F(0) : c.mul(F(i))))); // forgot to decrement exponent
+  let wrong2 = D.slice();
+  for (let i = 0; i < wrong2.length; i++) { if (!wrong2[i].isZero()) { wrong2[i] = F(0); break; } } // dropped a term
+  wrong2 = polyTrim(wrong2);
+  let wrong3 = D.slice();
+  const nzIdx = wrong3.map((c, i) => (c.isZero() ? -1 : i)).filter((i) => i >= 0);
+  if (nzIdx.length) { const idx = choice(nzIdx); wrong3[idx] = wrong3[idx].neg(); } // sign error
+  wrong3 = polyTrim(wrong3);
+
+  const seen = new Set([correctHTML]);
+  const wrongHTML = [];
+  for (const w of [wrong1, wrong2, wrong3].map((w) => polyToHTML(w))) { if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); } }
+  let guard = 0;
+  while (wrongHTML.length < 3 && guard < 20) {
+    guard++;
+    const jitter = D.slice();
+    const i = randInt(0, jitter.length - 1);
+    jitter[i] = jitter[i].add(F(choice([1, -1, 2, -2])));
+    const h = polyToHTML(polyTrim(jitter));
+    if (!seen.has(h)) { seen.add(h); wrongHTML.push(h); }
+  }
+
+  const stem = `Let f(x) = ${polyToHTML(p)}. Find f&prime;(x).`;
+  const steps = [
+    `Apply the power rule term by term: d/dx[x<sup>n</sup>] = n·x<sup>n−1</sup>.`,
+    `f&prime;(x) = ${correctHTML}.`,
+  ];
+  return { unit: 2, topic: '2.1', topicName: 'The Power Rule', difficulty, stem, answerHTML: correctHTML, solution: steps, wrongHTML };
+}
+
+function genBasicRulesSum(difficulty) {
+  const A = randNonZero(-6, 6);
+  const n = randInt(2, 4);
+  const B = randNonZero(-6, 6);
+  const C = randNonZero(-6, 6);
+  const includeExp = difficulty >= 2;
+  const includeLn = difficulty >= 3;
+  const D = includeExp ? randNonZero(-5, 5) : 0;
+  const E = includeLn ? randNonZero(-5, 5) : 0;
+
+  const joinTerms = (terms) => {
+    let html = (terms[0].sign < 0 ? '−' : '') + terms[0].text;
+    for (let i = 1; i < terms.length; i++) html += terms[i].sign < 0 ? ` − ${terms[i].text}` : ` + ${terms[i].text}`;
+    return html;
+  };
+  // Coefficient magnitude for display: omit a bare "1" (e.g. "x", not "1x").
+  const c1 = (v) => (Math.abs(v) === 1 ? '' : `${Math.abs(v)}`);
+
+  const termsStem = [
+    { sign: A < 0 ? -1 : 1, text: `${c1(A)}x<sup>${n}</sup>` },
+    { sign: B < 0 ? -1 : 1, text: `${c1(B)}sin x` },
+    { sign: C < 0 ? -1 : 1, text: `${c1(C)}cos x` },
+  ];
+  if (includeExp) termsStem.push({ sign: D < 0 ? -1 : 1, text: `${c1(D)}e<sup>x</sup>` });
+  if (includeLn) termsStem.push({ sign: E < 0 ? -1 : 1, text: `${c1(E)}ln x` });
+  const stemExpr = joinTerms(termsStem);
+
+  const coefAn = A * n;
+  const derivTerms = [
+    { sign: coefAn < 0 ? -1 : 1, text: n - 1 === 1 ? `${c1(coefAn)}x` : `${c1(coefAn)}x<sup>${n - 1}</sup>` },
+    { sign: B < 0 ? -1 : 1, text: `${c1(B)}cos x` },
+    { sign: C < 0 ? 1 : -1, text: `${c1(C)}sin x` }, // d/dx[C cos x] = -C sin x
+  ];
+  if (includeExp) derivTerms.push({ sign: D < 0 ? -1 : 1, text: `${c1(D)}e<sup>x</sup>` });
+  if (includeLn) derivTerms.push({ sign: E < 0 ? -1 : 1, text: `${Math.abs(E)}/x` });
+  const derivExpr = joinTerms(derivTerms);
+
+  const stem = `Let f(x) = ${stemExpr}. Find f&prime;(x).`;
+  const steps = [
+    `Differentiate term by term using the power, sine, and cosine rules${includeExp ? ', plus d/dx[e<sup>x</sup>] = e<sup>x</sup>' : ''}${includeLn ? ', and d/dx[ln x] = 1/x' : ''}.`,
+    `d/dx[sin x] = cos x, &nbsp; d/dx[cos x] = −sin x.`,
+    `f&prime;(x) = ${derivExpr}.`,
+  ];
+
+  const wrong1Terms = derivTerms.map((t) => ({ ...t }));
+  wrong1Terms[2] = { sign: C < 0 ? -1 : 1, text: `${Math.abs(C)}sin x` }; // dropped the negative on cos'
+  const wrong2Terms = derivTerms.map((t) => ({ ...t }));
+  wrong2Terms[0] = { sign: A < 0 ? -1 : 1, text: n === 2 ? `${Math.abs(A)}x` : `${Math.abs(A)}x<sup>${n}</sup>` }; // forgot power rule
+  const wrong3Terms = derivTerms.map((t) => ({ ...t }));
+  const flipIdx = randInt(0, wrong3Terms.length - 1);
+  wrong3Terms[flipIdx] = { ...wrong3Terms[flipIdx], sign: -wrong3Terms[flipIdx].sign };
+
+  const seen = new Set([derivExpr]);
+  const wrongHTML = [];
+  for (const t of [wrong1Terms, wrong2Terms, wrong3Terms]) {
+    const w = joinTerms(t);
+    if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); }
+  }
+  let guard = 0;
+  while (wrongHTML.length < 3 && guard < 20) {
+    guard++;
+    const idx = randInt(0, derivTerms.length - 1);
+    const t = derivTerms.map((x) => ({ ...x }));
+    t[idx].sign = -t[idx].sign;
+    const w = joinTerms(t);
+    if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); }
+  }
+
+  return { unit: 2, topic: '2.2', topicName: 'Derivatives of Trig, Exponential & Log Sums', difficulty, stem, answerHTML: derivExpr, solution: steps, wrongHTML };
+}
+
+function genProductRule(difficulty) {
+  const range = difficulty === 1 ? [-4, 4] : difficulty === 2 ? [-6, 6] : [-8, 8];
+  const a = randNonZero(range[0], range[1]), b = randInt(range[0], range[1]);
+  const c = randNonZero(range[0], range[1]), d = randInt(range[0], range[1]), e = randInt(range[0], range[1]);
+  const x0 = randInt(-3, 3);
+  const u = linear(a, b), v = [F(e), F(d), F(c)];
+  const uAt = polyEval(u, x0), vAt = polyEval(v, x0);
+  const uP = F(a), vPPoly = polyDeriv(v), vPAt = polyEval(vPPoly, x0);
+  const answer = uP.mul(vAt).add(uAt.mul(vPAt));
+  const stem = `Let f(x) = (${polyToHTML(u)})(${polyToHTML(v)}). Use the product rule to find f&prime;(${x0}).`;
+  const steps = [
+    `Product rule: f&prime;(x) = u&prime;(x)v(x) + u(x)v&prime;(x), where u(x) = ${polyToHTML(u)} and v(x) = ${polyToHTML(v)}.`,
+    `u&prime;(x) = ${a}, &nbsp; v&prime;(x) = ${polyToHTML(vPPoly)}.`,
+    `At x = ${x0}: u = ${uAt}, v = ${vAt}, u&prime; = ${uP}, v&prime; = ${vPAt}.`,
+    `f&prime;(${x0}) = (${uP})(${vAt}) + (${uAt})(${vPAt}) = ${answer.toString()}.`,
+  ];
+  return { unit: 2, topic: '2.3', topicName: 'The Product Rule', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genQuotientRule(difficulty) {
+  const range = difficulty === 1 ? [-4, 4] : difficulty === 2 ? [-6, 6] : [-8, 8];
+  let a, b, c, d, e, x0, vAtNum;
+  do {
+    a = randNonZero(range[0], range[1]); b = randInt(range[0], range[1]);
+    c = randNonZero(range[0], range[1]); d = randInt(range[0], range[1]); e = randInt(range[0], range[1]);
+    x0 = randInt(-3, 3);
+    vAtNum = c * x0 * x0 + d * x0 + e;
+  } while (vAtNum === 0);
+  const u = linear(a, b), v = [F(e), F(d), F(c)];
+  const uAt = polyEval(u, x0), vAt = polyEval(v, x0);
+  const uP = F(a), vP = polyDeriv(v), vPAt = polyEval(vP, x0);
+  const answer = uP.mul(vAt).sub(uAt.mul(vPAt)).div(vAt.mul(vAt));
+  const stem = `Let f(x) = (${polyToHTML(u)}) / (${polyToHTML(v)}). Use the quotient rule to find f&prime;(${x0}).`;
+  const steps = [
+    `Quotient rule: f&prime;(x) = [u&prime;(x)v(x) − u(x)v&prime;(x)] / [v(x)]<sup>2</sup>, where u(x) = ${polyToHTML(u)} and v(x) = ${polyToHTML(v)}.`,
+    `u&prime;(x) = ${a}, &nbsp; v&prime;(x) = ${polyToHTML(vP)}.`,
+    `At x = ${x0}: u = ${uAt}, v = ${vAt}, u&prime; = ${uP}, v&prime; = ${vPAt}.`,
+    `f&prime;(${x0}) = [(${uP})(${vAt}) − (${uAt})(${vPAt})] / (${vAt})<sup>2</sup> = ${answer.toString()}.`,
+  ];
+  return { unit: 2, topic: '2.4', topicName: 'The Quotient Rule', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+/* ---- Unit 3 — Composite, Implicit & Inverse Functions ---- */
+
+function genChainNumeric(difficulty) {
+  const n = difficulty === 1 ? randInt(2, 3) : difficulty === 2 ? randInt(3, 4) : randInt(4, 5);
+  const a = randNonZero(-3, 3);
+  const b = randInt(-4, 4);
+  const x0 = randInt(-2, 2);
+  const innerHTML = polyToHTML(linear(a, b));
+  const inner = a * x0 + b;
+  const answer = F(n).mul(F(inner).pow(n - 1)).mul(F(a));
+  const stem = `Let f(x) = (${innerHTML})<sup>${n}</sup>. Use the chain rule to find f&prime;(${x0}).`;
+  const steps = [
+    `Chain rule: d/dx[(g(x))<sup>${n}</sup>] = ${n}(g(x))<sup>${n - 1}</sup>·g&prime;(x), where g(x) = ${innerHTML}.`,
+    `g(${x0}) = ${inner}, &nbsp; g&prime;(x) = ${a}.`,
+    `f&prime;(${x0}) = ${n}(${inner})<sup>${n - 1}</sup>(${a}) = ${answer.toString()}.`,
+  ];
+  return { unit: 3, topic: '3.1', topicName: 'The Chain Rule (Evaluate Numerically)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genChainSymbolic(difficulty) {
+  const p = randNonZero(-4, 4);
+  const q = randInt(-5, 5);
+  const innerHTML = polyToHTML(linear(p, q));
+  const kinds = difficulty === 1 ? ['sin', 'cos', 'exp'] : difficulty === 2 ? ['sin', 'cos', 'exp', 'ln'] : ['sin', 'cos', 'exp', 'ln', 'pow'];
+  const kind = choice(kinds);
+  const trig = (coef, name) => {
+    const c = coef === 1 ? '' : coef === -1 ? '−' : `${coef}`;
+    return `${c}${name}(${innerHTML})`;
+  };
+
+  let stemFunc, derivExpr, wrongCandidates;
+  if (kind === 'sin') {
+    stemFunc = `sin(${innerHTML})`;
+    derivExpr = trig(p, 'cos');
+    wrongCandidates = [trig(1, 'cos'), trig(p, 'sin'), trig(-p, 'cos'), trig(p + 2, 'cos'), trig(p - 2, 'cos')];
+  } else if (kind === 'cos') {
+    stemFunc = `cos(${innerHTML})`;
+    derivExpr = trig(-p, 'sin');
+    wrongCandidates = [trig(1, 'sin'), trig(p, 'sin'), trig(-p, 'cos'), trig(-p + 2, 'sin'), trig(-p - 2, 'sin')];
+  } else if (kind === 'exp') {
+    stemFunc = `e<sup>${innerHTML}</sup>`;
+    derivExpr = `${p === 1 ? '' : p === -1 ? '−' : p}e<sup>${innerHTML}</sup>`;
+    wrongCandidates = [
+      `e<sup>${innerHTML}</sup>`, `${p * p}e<sup>${innerHTML}</sup>`, `${p}·(${innerHTML})·e<sup>${innerHTML}</sup>`,
+      `${p + 2}e<sup>${innerHTML}</sup>`, `${p - 2}e<sup>${innerHTML}</sup>`,
+    ];
+  } else if (kind === 'ln') {
+    stemFunc = `ln(${innerHTML})`;
+    derivExpr = p === 1 ? `1/(${innerHTML})` : `${p}/(${innerHTML})`;
+    wrongCandidates = [`1/(${innerHTML})`, `${p}/x`, `${p}·ln(${innerHTML})`, `${p + 2}/(${innerHTML})`, `${p - 2}/(${innerHTML})`];
+  } else {
+    const n = randInt(2, 4);
+    stemFunc = `(${innerHTML})<sup>${n}</sup>`;
+    const coefProduct = n * p;
+    derivExpr = `${coefProduct}(${innerHTML})<sup>${n - 1}</sup>`;
+    wrongCandidates = [
+      `${n}(${innerHTML})<sup>${n - 1}</sup>`, `${coefProduct}(${innerHTML})<sup>${n}</sup>`, `${p}(${innerHTML})<sup>${n - 1}</sup>`,
+      `${coefProduct + 2}(${innerHTML})<sup>${n - 1}</sup>`, `${coefProduct - 2}(${innerHTML})<sup>${n - 1}</sup>`,
+    ];
+  }
+
+  const stem = `Let f(x) = ${stemFunc}. Find f&prime;(x).`;
+  const steps = [
+    `Apply the chain rule: differentiate the outer function, then multiply by the derivative of the inner function g(x) = ${innerHTML}, where g&prime;(x) = ${p}.`,
+    `f&prime;(x) = ${derivExpr}.`,
+  ];
+  const seen = new Set([derivExpr]);
+  const wrongHTML = [];
+  for (const w of wrongCandidates) {
+    if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); }
+    if (wrongHTML.length === 3) break;
+  }
+  return { unit: 3, topic: '3.2', topicName: 'The Chain Rule (Symbolic Derivative)', difficulty, stem, answerHTML: derivExpr, solution: steps, wrongHTML };
+}
+
+function genImplicit(difficulty) {
+  if (difficulty < 3) {
+    const [p, q, r] = choice(PYTHAGOREAN_TRIPLES);
+    const swap = Math.random() < 0.5;
+    const x0 = swap ? q : p, y0 = swap ? p : q;
+    const rr = r * r;
+    const answer = F(-x0, y0);
+    const stem = `The point (${x0}, ${y0}) lies on the curve x<sup>2</sup> + y<sup>2</sup> = ${rr}. Find dy/dx at this point.`;
+    const steps = [
+      `Differentiate implicitly: 2x + 2y·(dy/dx) = 0.`,
+      `Solve for dy/dx: dy/dx = −x/y.`,
+      `At (${x0}, ${y0}): dy/dx = −${x0}/${y0} = ${answer.toString()}.`,
+    ];
+    return { unit: 3, topic: '3.3', topicName: 'Implicit Differentiation', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+  }
+  let x0, y0, A;
+  do { x0 = randNonZero(-4, 4); y0 = randNonZero(-4, 4); A = randNonZero(-3, 3); } while (y0 === 0);
+  const C = A * x0 * x0 + y0 * y0 * y0;
+  const answer = F(-2 * A * x0).div(F(3 * y0 * y0));
+  const stem = `The point (${x0}, ${y0}) lies on the curve ${A}x<sup>2</sup> + y<sup>3</sup> = ${C}. Find dy/dx at this point.`;
+  const steps = [
+    `Differentiate implicitly: ${2 * A}x + 3y<sup>2</sup>·(dy/dx) = 0.`,
+    `Solve for dy/dx: dy/dx = −${2 * A}x / (3y<sup>2</sup>).`,
+    `At (${x0}, ${y0}): dy/dx = −${2 * A * x0} / ${3 * y0 * y0} = ${answer.toString()}.`,
+  ];
+  return { unit: 3, topic: '3.3', topicName: 'Implicit Differentiation', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genInverseDeriv(difficulty) {
+  const a = randInt(-5, 5);
+  const b = randInt(-5, 5);
+  const range = difficulty === 1 ? [2, 6] : difficulty === 2 ? [2, 9] : [2, 12];
+  const mN = randNonZero(-range[1], range[1]);
+  const mD = difficulty === 3 ? randInt(2, 4) : 1;
+  const m = F(mN, mD);
+  const answer = F(1).div(m);
+  const stem = `Suppose f is differentiable and invertible, with f(${a}) = ${b} and f&prime;(${a}) = ${m.toString()}. Find (f<sup>−1</sup>)&prime;(${b}).`;
+  const steps = [
+    `Use the inverse function derivative formula: (f<sup>−1</sup>)&prime;(b) = 1 / f&prime;(f<sup>−1</sup>(b)).`,
+    `Since f(${a}) = ${b}, we know f<sup>−1</sup>(${b}) = ${a}.`,
+    `(f<sup>−1</sup>)&prime;(${b}) = 1 / f&prime;(${a}) = 1 / (${m.toString()}) = ${answer.toString()}.`,
+  ];
+  return { unit: 3, topic: '3.4', topicName: 'Derivatives of Inverse Functions', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+/* ---- Unit 4 — Contextual Applications of Differentiation ---- */
+
+function genMotion(difficulty) {
+  const maxCoeff = difficulty === 1 ? 5 : difficulty === 2 ? 7 : 9;
+  const s = randPoly(3, 3, -maxCoeff, maxCoeff);
+  const v = polyDeriv(s);
+  const acc = polyDeriv(v);
+  const t0 = randInt(1, 3);
+  const mode = choice(['velocity', 'acceleration', 'speed']);
+  const vAt = polyEval(v, t0), aAt = polyEval(acc, t0);
+  let stem, answerHTML, steps, wrongHTML;
+  if (mode === 'velocity') {
+    stem = `The position of a particle moving along a line is given by s(t) = ${polyToHTML(s)} (t in seconds, s in meters). Find the particle's velocity at t = ${t0}.`;
+    answerHTML = `${vAt.toString()} m/s`;
+    steps = [
+      `Velocity is the derivative of position: v(t) = s&prime;(t) = ${polyToHTML(v)}.`,
+      `v(${t0}) = ${vAt.toString()} m/s.`,
+    ];
+    wrongHTML = makeNumericDistractors(vAt).map((w) => `${w} m/s`);
+  } else if (mode === 'acceleration') {
+    stem = `The position of a particle moving along a line is given by s(t) = ${polyToHTML(s)} (t in seconds, s in meters). Find the particle's acceleration at t = ${t0}.`;
+    answerHTML = `${aAt.toString()} m/s²`;
+    steps = [
+      `Velocity: v(t) = s&prime;(t) = ${polyToHTML(v)}. Acceleration: a(t) = v&prime;(t) = ${polyToHTML(acc)}.`,
+      `a(${t0}) = ${aAt.toString()} m/s².`,
+    ];
+    wrongHTML = makeNumericDistractors(aAt).map((w) => `${w} m/s²`);
+  } else {
+    const speedingUp = vAt.toFloat() * aAt.toFloat() > 0;
+    answerHTML = vAt.isZero() ? 'momentarily at rest' : (speedingUp ? 'speeding up' : 'slowing down');
+    stem = `The position of a particle moving along a line is given by s(t) = ${polyToHTML(s)} (t in seconds, s in meters). Is the particle speeding up or slowing down at t = ${t0}? Justify your answer.`;
+    steps = [
+      `v(t) = ${polyToHTML(v)}, so v(${t0}) = ${vAt.toString()}. a(t) = ${polyToHTML(acc)}, so a(${t0}) = ${aAt.toString()}.`,
+      `A particle speeds up when v(t) and a(t) have the same sign, and slows down when they have opposite signs.`,
+      `Since v(${t0}) = ${vAt.toString()} and a(${t0}) = ${aAt.toString()}, the particle is ${answerHTML} at t = ${t0}.`,
+    ];
+    wrongHTML = ['speeding up', 'slowing down', 'momentarily at rest', 'moving at constant velocity'].filter((x) => x !== answerHTML).slice(0, 3);
+  }
+  return { unit: 4, topic: '4.1', topicName: 'Motion: Position, Velocity & Acceleration', difficulty, stem, answerHTML, solution: steps, wrongHTML };
+}
+
+function genRelatedRates(difficulty) {
+  const kind = choice(['ladder', 'sphere']);
+  if (kind === 'ladder') {
+    const [p, q, L] = choice(PYTHAGOREAN_TRIPLES);
+    const dxdt = randNonZero(1, difficulty === 1 ? 3 : difficulty === 2 ? 5 : 8);
+    const answer = F(-p * dxdt, q);
+    const stem = `A ${L}-foot ladder leans against a vertical wall. The bottom of the ladder is being pulled away from the wall at a rate of ${dxdt} ft/s. How fast is the top of the ladder sliding down the wall at the moment the bottom of the ladder is ${p} ft from the wall?`;
+    const steps = [
+      `Let x = distance from the wall to the base, y = height of the top of the ladder. Then x<sup>2</sup> + y<sup>2</sup> = ${L}<sup>2</sup>.`,
+      `Differentiate with respect to t: 2x(dx/dt) + 2y(dy/dt) = 0, so dy/dt = −(x/y)(dx/dt).`,
+      `When x = ${p}: y = √(${L}<sup>2</sup> − ${p}<sup>2</sup>) = ${q}.`,
+      `dy/dt = −(${p}/${q})(${dxdt}) = ${answer.toString()} ft/s (negative means the top is sliding down).`,
+    ];
+    return { unit: 4, topic: '4.2', topicName: 'Related Rates', difficulty, stem, answerHTML: `${answer.toString()} ft/s`, solution: steps, wrongHTML: makeNumericDistractors(answer).map((w) => `${w} ft/s`) };
+  }
+  const r0 = randInt(2, difficulty === 1 ? 4 : difficulty === 2 ? 6 : 9);
+  const dVdt = randNonZero(1, 6) * choice([4, 8, 12]);
+  const coeff = F(dVdt, 4 * r0 * r0);
+  const overPi = (c) => (c.d === 1 ? `${c.n}/π` : `${c.n}/(${c.d}π)`);
+  const stem = `Air is pumped into a spherical balloon so that its volume increases at a rate of ${dVdt} cubic inches per second. How fast is the radius increasing when the radius is ${r0} inches? (Leave your answer in terms of π.)`;
+  const steps = [
+    `V = (4/3)πr<sup>3</sup>. Differentiate with respect to t: dV/dt = 4πr<sup>2</sup>(dr/dt).`,
+    `Solve for dr/dt: dr/dt = (dV/dt) / (4πr<sup>2</sup>).`,
+    `dr/dt = ${dVdt} / (4π(${r0})<sup>2</sup>) = ${overPi(coeff)} in/s.`,
+  ];
+  const wrongCoeffs = [coeff.neg(), coeff.add(F(1)), coeff.sub(F(1)), coeff.mul(F(2)), coeff.div(F(2))];
+  const seenPi = new Set([coeff.toString()]);
+  const wrongHTML = [];
+  for (const c of wrongCoeffs) { if (!seenPi.has(c.toString())) { seenPi.add(c.toString()); wrongHTML.push(`${overPi(c)} in/s`); } if (wrongHTML.length === 3) break; }
+  return { unit: 4, topic: '4.2', topicName: 'Related Rates', difficulty, stem, answerHTML: `${overPi(coeff)} in/s`, solution: steps, wrongHTML };
+}
+
+function genLinearApprox(difficulty) {
+  const maxCoeff = difficulty === 1 ? 4 : difficulty === 2 ? 6 : 8;
+  const p = randPoly(2, 2, -maxCoeff, maxCoeff);
+  const x0 = randInt(-3, 3);
+  const dx = choice([1, -1, 2, -2]);
+  const x1 = x0 + dx;
+  const fAt = polyEval(p, x0);
+  const fP = polyDeriv(p);
+  const fPAt = polyEval(fP, x0);
+  const answer = fAt.add(fPAt.mul(F(dx)));
+  const stem = `Let f(x) = ${polyToHTML(p)}. Use the line tangent to f at x = ${x0} to approximate f(${x1}).`;
+  const steps = [
+    `f(${x0}) = ${fAt.toString()}, and f&prime;(x) = ${polyToHTML(fP)}, so f&prime;(${x0}) = ${fPAt.toString()}.`,
+    `Tangent line (linear approximation): L(x) = f(${x0}) + f&prime;(${x0})(x − ${x0}).`,
+    `L(${x1}) = ${fAt.toString()} + (${fPAt.toString()})(${x1} − ${x0}) = ${answer.toString()}.`,
+  ];
+  return { unit: 4, topic: '4.3', topicName: 'Local Linearization (Tangent Line Approximation)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genLHopital(difficulty) {
+  const range = difficulty === 1 ? [-5, 5] : difficulty === 2 ? [-7, 7] : [-9, 9];
+  const a = randInt(Math.max(range[0], -3), 3);
+  let s; do { s = randNonZero(range[0], range[1]); } while (s === a);
+  let t; do { t = randNonZero(range[0], range[1]); } while (t === a || t === s);
+  const A = randNonZero(-3, 3), B = randNonZero(-3, 3);
+  const p = polyScale(polyMul([F(-a), F(1)], [F(-s), F(1)]), A);
+  const q = polyScale(polyMul([F(-a), F(1)], [F(-t), F(1)]), B);
+  const pP = polyDeriv(p), qP = polyDeriv(q);
+  const pPAt = polyEval(pP, a), qPAt = polyEval(qP, a);
+  const answer = pPAt.div(qPAt);
+  const stem = `Evaluate using L'Hôpital's Rule:<br><span class="mathblock">lim<sub>x→${a}</sub> [ (${polyToHTML(p)}) / (${polyToHTML(q)}) ]</span>`;
+  const steps = [
+    `Direct substitution gives the indeterminate form 0/0, since x = ${a} is a root of both the numerator and denominator.`,
+    `L'Hôpital's Rule: the limit equals lim<sub>x→${a}</sub> [p&prime;(x)/q&prime;(x)], where p&prime;(x) = ${polyToHTML(pP)} and q&prime;(x) = ${polyToHTML(qP)}.`,
+    `Substitute x = ${a}: ${pPAt.toString()} / ${qPAt.toString()} = ${answer.toString()}.`,
+  ];
+  return { unit: 4, topic: '4.4', topicName: "L'Hôpital's Rule", difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+/* ---- Unit 5 — Analytical Applications of Differentiation ---- */
+
+function genFirstDerivTest(difficulty) {
+  const range = difficulty === 1 ? [-6, 6] : difficulty === 2 ? [-8, 8] : [-10, 10];
+  let p = randInt(range[0], range[1]);
+  let q; do { q = randInt(range[0], range[1]); } while (q === p);
+  if (p > q) [p, q] = [q, p];
+  const A = randNonZero(-3, 3);
+  const fP = polyScale(polyMul([F(-p), F(1)], [F(-q), F(1)]), A);
+  const f = polyAntideriv(fP);
+  const askMin = Math.random() < 0.5;
+  const minLoc = A > 0 ? q : p;
+  const maxLoc = A > 0 ? p : q;
+  const answer = askMin ? minLoc : maxLoc;
+  const otherLoc = askMin ? maxLoc : minLoc;
+  const stem = `Let f be a function with f(x) = ${polyToHTML(f)} and f&prime;(x) = ${polyToHTML(fP)}. At what x-value does f have a local ${askMin ? 'minimum' : 'maximum'}?`;
+  const steps = [
+    `f&prime;(x) = 0 at x = ${p} and x = ${q}. These are the critical points.`,
+    `The leading coefficient of f&prime; is ${A} (${A > 0 ? 'positive: opens upward' : 'negative: opens downward'}), so f&prime; is ${A > 0 ? 'negative between the roots and positive outside' : 'positive between the roots and negative outside'}.`,
+    `By the First Derivative Test, f has a local ${A > 0 ? 'maximum' : 'minimum'} at x = ${p} and a local ${A > 0 ? 'minimum' : 'maximum'} at x = ${q}.`,
+    `So the local ${askMin ? 'minimum' : 'maximum'} occurs at x = ${answer}.`,
+  ];
+  const wl = [`${otherLoc}`, `${answer + 1}`, `${answer - 1}`];
+  const seen = new Set([`${answer}`]);
+  const wrongHTML = [];
+  for (const w of wl) { if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); } }
+  let guard = 0;
+  while (wrongHTML.length < 3 && guard < 20) { guard++; const v = `${answer + randNonZero(-4, 4)}`; if (!seen.has(v)) { seen.add(v); wrongHTML.push(v); } }
+  return { unit: 5, topic: '5.1', topicName: 'Increasing/Decreasing & the First Derivative Test', difficulty, stem, answerHTML: `x = ${answer}`, solution: steps, wrongHTML: wrongHTML.map((w) => `x = ${w}`) };
+}
+
+function genConcavity(difficulty) {
+  const range = difficulty === 1 ? [-5, 5] : difficulty === 2 ? [-7, 7] : [-9, 9];
+  const xInf = randInt(range[0], range[1]);
+  const a = randNonZero(-3, 3);
+  const b = -3 * a * xInf;
+  const c = randInt(range[0], range[1]);
+  const d = randInt(range[0], range[1]);
+  const f = [F(d), F(c), F(b), F(a)];
+  const fP = polyDeriv(f);
+  const fPP = polyDeriv(fP);
+  const stem = `Let f(x) = ${polyToHTML(f)}. Find the x-coordinate of the point of inflection of f.`;
+  const steps = [
+    `f&prime;(x) = ${polyToHTML(fP)}, and f&Prime;(x) = ${polyToHTML(fPP)}.`,
+    `Set f&Prime;(x) = 0 and solve: ${polyToHTML(fPP)} = 0 → x = ${xInf}.`,
+    `f&Prime; changes sign at x = ${xInf} (it is linear with nonzero slope), so this is a point of inflection.`,
+  ];
+  const answer = F(xInf);
+  return { unit: 5, topic: '5.2', topicName: 'Concavity & the Second Derivative Test', difficulty, stem, answerHTML: `x = ${answer.toString()}`, solution: steps, wrongHTML: makeNumericDistractors(answer).map((w) => `x = ${w}`) };
+}
+
+function genOptimization(difficulty) {
+  const kind = choice(['fence', 'wall']);
+  const base = difficulty === 1 ? [8, 16] : difficulty === 2 ? [12, 24] : [16, 32];
+  if (kind === 'fence') {
+    let P; do { P = randInt(base[0], base[1]); } while (P % 4 !== 0);
+    const x = P / 4;
+    const area = x * x;
+    const stem = `A rectangular garden is to be enclosed by ${P} feet of fencing. What dimensions maximize the enclosed area, and what is that maximum area?`;
+    const steps = [
+      `Let x and y be the side lengths. The perimeter constraint gives 2x + 2y = ${P}, so y = ${P / 2} − x.`,
+      `Area: A(x) = x(${P / 2} − x) = ${P / 2}x − x<sup>2</sup>.`,
+      `A&prime;(x) = ${P / 2} − 2x. Set A&prime;(x) = 0: x = ${x}.`,
+      `A&Prime;(x) = −2 &lt; 0, confirming a maximum. Since y = ${P / 2} − ${x} = ${x}, the maximum-area rectangle is a ${x} ft × ${x} ft square with area ${area} ft².`,
+    ];
+    const answerHTML = `${x} ft × ${x} ft (area = ${area} ft²)`;
+    const candidates = [
+      [x - 1, x + 1], [x + 2, x - 2], [P / 2, 0], [x + 1, x - 1], [1, P / 2 - 1],
+    ].filter(([w, h]) => w >= 0 && h >= 0);
+    const seenOpt = new Set([answerHTML]);
+    const wrongHTML = [];
+    for (const [w, h] of candidates) {
+      const txt = `${w} ft × ${h} ft (area = ${w * h} ft²)`;
+      if (!seenOpt.has(txt)) { seenOpt.add(txt); wrongHTML.push(txt); }
+      if (wrongHTML.length === 3) break;
+    }
+    return { unit: 5, topic: '5.3', topicName: 'Optimization Problems', difficulty, stem, answerHTML, solution: steps, wrongHTML };
+  }
+  let Ftot; do { Ftot = randInt(base[0], base[1]); } while (Ftot % 4 !== 0);
+  const x = Ftot / 4, y = Ftot / 2;
+  const area = x * y;
+  const stem = `A farmer has ${Ftot} feet of fencing to enclose a rectangular pen that uses an existing straight wall as one side (no fencing needed along the wall). Find the dimensions that maximize the enclosed area.`;
+  const steps = [
+    `Let x = the length of each side perpendicular to the wall, and y = the length parallel to the wall. Fencing constraint: 2x + y = ${Ftot}, so y = ${Ftot} − 2x.`,
+    `Area: A(x) = xy = x(${Ftot} − 2x) = ${Ftot}x − 2x<sup>2</sup>.`,
+    `A&prime;(x) = ${Ftot} − 4x. Set A&prime;(x) = 0: x = ${x}.`,
+    `A&Prime;(x) = −4 &lt; 0, confirming a maximum. y = ${Ftot} − 2(${x}) = ${y}. Maximum area = ${x} × ${y} = ${area} ft².`,
+  ];
+  const answerHTML = `x = ${x} ft, y = ${y} ft (area = ${area} ft²)`;
+  const wallCandidates = [
+    [y, x], [x + 1, Ftot - 2 * (x + 1)], [x - 1, Ftot - 2 * (x - 1)], [Ftot / 2, 0], [x + 2, Ftot - 2 * (x + 2)],
+  ].filter(([cx, cy]) => cx >= 0 && cy >= 0);
+  const seenWall = new Set([answerHTML]);
+  const wrongHTML = [];
+  for (const [cx, cy] of wallCandidates) {
+    const txt = `x = ${cx} ft, y = ${cy} ft (area = ${cx * cy} ft²)`;
+    if (!seenWall.has(txt)) { seenWall.add(txt); wrongHTML.push(txt); }
+    if (wrongHTML.length === 3) break;
+  }
+  return { unit: 5, topic: '5.3', topicName: 'Optimization Problems', difficulty, stem, answerHTML, solution: steps, wrongHTML };
+}
+
+/* ---- Unit 6 — Integration and Accumulation of Change ---- */
+
+function genDefiniteIntegral(difficulty) {
+  const maxDeg = difficulty === 1 ? 2 : difficulty === 2 ? 3 : 4;
+  const p = randPoly(1, maxDeg, -6, 6);
+  const a = randInt(-3, 2);
+  const b = randInt(a + 1, a + 4);
+  const P = polyAntideriv(p);
+  const Pb = polyEval(P, b), Pa = polyEval(P, a);
+  const answer = Pb.sub(Pa);
+  const stem = `Evaluate the definite integral:<br><span class="mathblock">∫<sub>${a}</sub><sup>${b}</sup> (${polyToHTML(p)}) dx</span>`;
+  const steps = [
+    `Find an antiderivative: F(x) = ${polyToHTML(P)}.`,
+    `By the Fundamental Theorem of Calculus: F(${b}) − F(${a}) = ${Pb.toString()} − (${Pa.toString()}) = ${answer.toString()}.`,
+  ];
+  return { unit: 6, topic: '6.1', topicName: 'Definite Integrals (FTC)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genFTCAccum(difficulty) {
+  const f = randPoly(1, 2, -6, 6);
+  const a = randInt(-3, 3);
+  const x0 = randInt(-2, 3);
+  if (difficulty === 1) {
+    const val = polyEval(f, x0);
+    const stem = `Let g(x) = ∫<sub>${a}</sub><sup>x</sup> (${polyToHTML(f, 't')}) dt. Find g&prime;(${x0}).`;
+    const steps = [
+      `By the Fundamental Theorem of Calculus (Part 1), g&prime;(x) = f(x), where f(t) = ${polyToHTML(f, 't')}.`,
+      `g&prime;(${x0}) = f(${x0}) = ${val.toString()}.`,
+    ];
+    return { unit: 6, topic: '6.2', topicName: 'Accumulation Functions (FTC Part 1)', difficulty, stem, answerHTML: val.toString(), solution: steps, wrongHTML: makeNumericDistractors(val) };
+  }
+  const k = difficulty === 2 ? choice([2, 3]) : choice([2, 3, -2]);
+  const hx0 = k * x0;
+  const fAtH = polyEval(f, hx0);
+  const answer = fAtH.mul(F(k));
+  const upper = `${k === 1 ? '' : k}x`;
+  const stem = `Let g(x) = ∫<sub>${a}</sub><sup>${upper}</sup> (${polyToHTML(f, 't')}) dt. Find g&prime;(${x0}).`;
+  const steps = [
+    `By the Fundamental Theorem of Calculus with the chain rule: g&prime;(x) = f(${upper})·${k}, where f(t) = ${polyToHTML(f, 't')}.`,
+    `At x = ${x0}: ${upper.replace('x', `(${x0})`)} = ${hx0}, so f(${hx0}) = ${fAtH.toString()}.`,
+    `g&prime;(${x0}) = ${fAtH.toString()} × ${k} = ${answer.toString()}.`,
+  ];
+  return { unit: 6, topic: '6.2', topicName: 'Accumulation Functions (FTC Part 1)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genUSub(difficulty) {
+  const k = randNonZero(-4, 4);
+  const m = randInt(-5, 5);
+  const n = difficulty === 1 ? randInt(2, 3) : difficulty === 2 ? randInt(3, 5) : randInt(2, 6);
+  const a = randNonZero(-3, 3);
+  const innerHTML = polyToHTML(linear(k, m));
+  const coef = F(a).div(F(k * (n + 1)));
+  const coefPrefix = coef.equals(F(1)) ? '' : coef.equals(F(-1)) ? '−' : coef.toString();
+  const answerHTML = `${coefPrefix}(${innerHTML})<sup>${n + 1}</sup> + C`;
+  const stem = `Find the indefinite integral:<br><span class="mathblock">∫ ${a === 1 ? '' : a}(${innerHTML})<sup>${n}</sup> dx</span>`;
+  const steps = [
+    `Let u = ${innerHTML}, so du = ${k} dx, i.e. dx = du/${k}.`,
+    `The integral becomes ∫ ${a} u<sup>${n}</sup> (du/${k}) = (${a}/${k}) ∫ u<sup>${n}</sup> du = (${a}/${k}) · u<sup>${n + 1}</sup>/${n + 1} + C.`,
+    `Substitute back u = ${innerHTML}: ${answerHTML}`,
+  ];
+  const wrong1 = `${F(a, k).toString()}(${innerHTML})<sup>${n + 1}</sup> + C`; // forgot to divide by (n+1)
+  const wrong2 = `${coefPrefix}(${innerHTML})<sup>${n}</sup> + C`; // forgot to raise the exponent
+  const wrong3 = `${F(a, n + 1).toString()}(${innerHTML})<sup>${n + 1}</sup> + C`; // forgot to divide by k
+  const seen = new Set([answerHTML]);
+  const wrongHTML = [];
+  for (const w of [wrong1, wrong2, wrong3]) { if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); } }
+  while (wrongHTML.length < 3) wrongHTML.push(`${coef.add(F(1)).toString()}(${innerHTML})<sup>${n + 1}</sup> + C`);
+  return { unit: 6, topic: '6.3', topicName: 'Antiderivatives by u-Substitution', difficulty, stem, answerHTML, solution: steps, wrongHTML: wrongHTML.slice(0, 3) };
+}
+
+/* ---- Unit 7 — Differential Equations ---- */
+
+function genSeparableDE(difficulty) {
+  const pool = difficulty === 1 ? PYTHAGOREAN_TRIPLES.filter((t) => t[2] <= 13)
+    : difficulty === 2 ? PYTHAGOREAN_TRIPLES.filter((t) => t[2] <= 25)
+    : PYTHAGOREAN_TRIPLES;
+  const [m, x1, y1] = choice(pool.length ? pool : PYTHAGOREAN_TRIPLES);
+  const stem = `Solve the differential equation dy/dx = x/y with initial condition y(0) = ${m}, y &gt; 0. Find y(${x1}).`;
+  const steps = [
+    `Separate variables: y dy = x dx.`,
+    `Integrate both sides: y<sup>2</sup>/2 = x<sup>2</sup>/2 + C.`,
+    `Apply the initial condition y(0) = ${m}: ${m}<sup>2</sup>/2 = 0 + C, so C = ${(m * m) / 2}.`,
+    `General solution: y<sup>2</sup> = x<sup>2</sup> + ${m * m}, so y = √(x<sup>2</sup> + ${m * m}) (positive root, since y &gt; 0).`,
+    `y(${x1}) = √(${x1}<sup>2</sup> + ${m * m}) = √${x1 * x1 + m * m} = ${y1}.`,
+  ];
+  const answer = F(y1);
+  return { unit: 7, topic: '7.1', topicName: 'Separable Differential Equations', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genGrowthDecay(difficulty) {
+  const P0 = randInt(50, 400);
+  const grow = Math.random() < 0.5;
+  const span = difficulty === 1 ? 2 : difficulty === 2 ? 4 : 6;
+  const ratio = grow ? 1 + randInt(1, span) / 10 : 1 - randInt(1, span) / 10;
+  const t1 = randInt(2, 6);
+  const t2 = t1 + randInt(1, 5);
+  const k = Math.log(ratio) / t1;
+  const P1 = Math.round(P0 * ratio);
+  const answer = P0 * Math.exp(k * t2);
+  const stem = `A population grows or decays at a rate proportional to its size. At time t = 0 the population is ${P0}. At time t = ${t1}, the population is ${P1}. Assuming exponential growth/decay, find the population at time t = ${t2}. Round to the nearest whole number.`;
+  const steps = [
+    `The model is P(t) = P<sub>0</sub>e<sup>kt</sup> with P<sub>0</sub> = ${P0}.`,
+    `Use P(${t1}) = ${P1}: ${P0}e<sup>${t1}k</sup> = ${P1}, so k = ln(${P1}/${P0}) / ${t1} ≈ ${k.toFixed(5)}.`,
+    `P(${t2}) = ${P0}e<sup>${(k * t2).toFixed(5)}</sup> ≈ ${answer.toFixed(0)}.`,
+  ];
+  return { unit: 7, topic: '7.2', topicName: 'Exponential Growth and Decay', difficulty, stem, answerHTML: `${answer.toFixed(0)}`, solution: steps, wrongHTML: makeDecimalDistractors(answer, 0) };
+}
+
+/* ---- Unit 8 — Applications of Integration ---- */
+
+function genAverageValue(difficulty) {
+  const maxDeg = difficulty === 1 ? 2 : difficulty === 2 ? 3 : 4;
+  const p = randPoly(1, maxDeg, -6, 6);
+  const a = randInt(-3, 1);
+  const b = randInt(a + 1, a + 5);
+  const P = polyAntideriv(p);
+  const integral = polyEval(P, b).sub(polyEval(P, a));
+  const answer = integral.div(F(b - a));
+  const stem = `Find the average value of f(x) = ${polyToHTML(p)} on the interval [${a}, ${b}].`;
+  const steps = [
+    `Average value formula: f<sub>avg</sub> = (1/(b−a)) ∫<sub>a</sub><sup>b</sup> f(x) dx.`,
+    `∫<sub>${a}</sub><sup>${b}</sup> (${polyToHTML(p)}) dx = ${integral.toString()} (using F(x) = ${polyToHTML(P)}).`,
+    `f<sub>avg</sub> = ${integral.toString()} / (${b} − (${a})) = ${answer.toString()}.`,
+  ];
+  return { unit: 8, topic: '8.1', topicName: 'Average Value of a Function', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genAreaBetween(difficulty) {
+  const maxDeg = difficulty === 3 ? 2 : 1;
+  let f, g, a, b, diff, ok = false, tries = 0;
+  while (!ok && tries < 200) {
+    tries++;
+    f = polyAdd(randPoly(1, maxDeg, -5, 5), [F(randInt(4, 10))]); // biased upward
+    g = randPoly(0, 1, -5, 5);
+    a = randInt(-2, 0); b = randInt(a + 2, a + 4);
+    diff = polySub(f, g);
+    ok = true;
+    for (let i = 0; i <= 40; i++) {
+      const x = a + ((b - a) * i) / 40;
+      if (polyEvalFloat(diff, x) <= 0) { ok = false; break; }
+    }
+  }
+  if (!ok) { // guaranteed-safe fallback
+    g = randPoly(0, 1, -5, 5);
+    const c = randInt(3, 9);
+    f = polyAdd(g, [F(c)]);
+    a = randInt(-2, 0); b = randInt(a + 2, a + 4);
+    diff = [F(c)];
+  }
+  const D = polyAntideriv(diff);
+  const Db = polyEval(D, b), Da = polyEval(D, a);
+  const area = Db.sub(Da);
+  const stem = `Let R be the region bounded by f(x) = ${polyToHTML(f)} and g(x) = ${polyToHTML(g)} between x = ${a} and x = ${b}. Find the area of R.`;
+  const steps = [
+    `On [${a}, ${b}], f(x) ≥ g(x), so Area = ∫<sub>${a}</sub><sup>${b}</sup> [f(x) − g(x)] dx.`,
+    `f(x) − g(x) = ${polyToHTML(diff)}.`,
+    `Antiderivative: ${polyToHTML(D)}.`,
+    `Area = ${Db.toString()} − (${Da.toString()}) = ${area.toString()}.`,
+  ];
+  return { unit: 8, topic: '8.2', topicName: 'Area Between Two Curves', difficulty, stem, answerHTML: area.toString(), solution: steps, wrongHTML: makeNumericDistractors(area) };
+}
+
+function piDistractorsHTML(coeff) {
+  const candidates = [coeff.neg(), coeff.add(F(1)), coeff.sub(F(1)), coeff.mul(F(2)), coeff.div(F(2))];
+  const seen = new Set([coeff.toString()]);
+  const out = [];
+  for (const c of candidates) { if (!seen.has(c.toString())) { seen.add(c.toString()); out.push(fracPiHTML(c)); } if (out.length === 3) break; }
+  return out;
+}
+
+function genVolume(difficulty) {
+  const maxDeg = difficulty === 1 ? 1 : 2;
+  const f = randPoly(1, maxDeg, -4, 4);
+  const a = randInt(0, 2);
+  const b = randInt(a + 1, a + 3);
+  const sq = polyMul(f, f);
+  const S = polyAntideriv(sq);
+  const coeff = polyEval(S, b).sub(polyEval(S, a));
+  const stem = `The region bounded by y = ${polyToHTML(f)}, the x-axis, x = ${a}, and x = ${b} is revolved about the x-axis. Find the volume of the resulting solid.`;
+  const steps = [
+    `Disk method: V = π∫<sub>${a}</sub><sup>${b}</sup> [f(x)]<sup>2</sup> dx, where [f(x)]<sup>2</sup> = ${polyToHTML(sq)}.`,
+    `Antiderivative: ${polyToHTML(S)}.`,
+    `V = π[${polyEval(S, b).toString()} − (${polyEval(S, a).toString()})] = ${coeff.toString()}π.`,
+  ];
+  return { unit: 8, topic: '8.3', topicName: 'Volumes of Revolution (Disk/Washer)', difficulty, stem, answerHTML: fracPiHTML(coeff), solution: steps, wrongHTML: piDistractorsHTML(coeff) };
+}
+
+/* ---- Unit 9 (BC) — Parametric, Polar & Vector-Valued Functions ---- */
+
+function genParametricDeriv(difficulty) {
+  const maxDeg = difficulty === 1 ? 1 : 2;
+  let x, y, t0, xP, xPAt;
+  do {
+    x = randPoly(1, maxDeg, -5, 5);
+    y = randPoly(1, maxDeg, -5, 5);
+    t0 = randInt(-2, 2);
+    xP = polyDeriv(x);
+    xPAt = polyEval(xP, t0);
+  } while (xPAt.isZero());
+  const yP = polyDeriv(y);
+  const yPAt = polyEval(yP, t0);
+  const answer = yPAt.div(xPAt);
+  const stem = `A curve is defined parametrically by x(t) = ${polyToHTML(x, 't')} and y(t) = ${polyToHTML(y, 't')}. Find dy/dx at t = ${t0}.`;
+  const steps = [
+    `dy/dx = [dy/dt] / [dx/dt] = y&prime;(t) / x&prime;(t).`,
+    `x&prime;(t) = ${polyToHTML(xP, 't')}, so x&prime;(${t0}) = ${xPAt.toString()}.`,
+    `y&prime;(t) = ${polyToHTML(yP, 't')}, so y&prime;(${t0}) = ${yPAt.toString()}.`,
+    `dy/dx = ${yPAt.toString()} / ${xPAt.toString()} = ${answer.toString()}.`,
+  ];
+  return { unit: 9, topic: '9.1', topicName: 'Derivatives of Parametric Equations', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genPolarArea(difficulty) {
+  const kind = difficulty === 1 ? 'circle' : choice(['circle', 'rose']);
+  const k = randInt(2, 6);
+  if (kind === 'circle') {
+    const half = difficulty >= 2 && Math.random() < 0.5;
+    const answerCoeff = half ? F(k * k, 2) : F(k * k);
+    const stem = `Find the area enclosed by the polar curve r = ${k} for θ from ${half ? '0 to π' : '0 to 2π'}.`;
+    const steps = [
+      `Polar area formula: A = (1/2)∫ r<sup>2</sup> dθ.`,
+      `A = (1/2)∫<sub>0</sub><sup>${half ? 'π' : '2π'}</sup> ${k * k} dθ = (1/2)(${k * k})(${half ? 'π' : '2π'}) = ${answerCoeff.toString()}π.`,
+    ];
+    return { unit: 9, topic: '9.2', topicName: 'Area of a Polar Region', difficulty, stem, answerHTML: fracPiHTML(answerCoeff), solution: steps, wrongHTML: piDistractorsHTML(answerCoeff) };
+  }
+  const n = choice([2, 3]);
+  const areaCoeff = F(k * k, 4 * n);
+  const stem = `Find the area of one petal of the polar rose r = ${k} sin(${n}θ).`;
+  const steps = [
+    `For a rose r = k sin(nθ), the area of one petal is A = πk<sup>2</sup>/(4n).`,
+    `A = π(${k})<sup>2</sup> / (4·${n}) = ${areaCoeff.toString()}π.`,
+  ];
+  return { unit: 9, topic: '9.2', topicName: 'Area of a Polar Region', difficulty, stem, answerHTML: fracPiHTML(areaCoeff), solution: steps, wrongHTML: piDistractorsHTML(areaCoeff) };
+}
+
+/* ---- Unit 10 (BC) — Infinite Sequences and Series ---- */
+
+function genGeometricSeries(difficulty) {
+  const a = randNonZero(-9, 9);
+  const denomChoices = difficulty === 1 ? [2, 3, 4] : difficulty === 2 ? [2, 3, 4, 5] : [2, 3, 4, 5, 6];
+  const rd = choice(denomChoices);
+  const rn = randNonZero(1, rd - 1) * choice([1, -1]);
+  const r = F(rn, rd);
+  const sum = F(a).div(F(1).sub(r));
+  const stem = `Find the sum of the geometric series: ${a} + ${a}(${r.toString()}) + ${a}(${r.toString()})<sup>2</sup> + ⋯`;
+  const steps = [
+    `This is a geometric series with first term a = ${a} and common ratio r = ${r.toString()}.`,
+    `Since |r| = |${r.toString()}| &lt; 1, the series converges.`,
+    `Sum = a/(1 − r) = ${a} / (1 − (${r.toString()})) = ${sum.toString()}.`,
+  ];
+  return { unit: 10, topic: '10.1', topicName: 'Geometric Series', difficulty, stem, answerHTML: sum.toString(), solution: steps, wrongHTML: makeNumericDistractors(sum) };
+}
+
+function factorial(k) { let r = 1; for (let i = 2; i <= k; i++) r *= i; return r; }
+
+function genMaclaurin(difficulty) {
+  const kind = choice(['exp', 'sin', 'cos', 'geom']);
+  const n = difficulty === 1 ? 3 : difficulty === 2 ? 4 : 5;
+  const terms = [];
+  if (kind === 'exp') {
+    for (let i = 0; i <= n; i++) terms.push({ power: i, coef: F(1, factorial(i)) });
+  } else if (kind === 'geom') {
+    for (let i = 0; i <= n; i++) terms.push({ power: i, coef: F(1) });
+  } else if (kind === 'sin') {
+    for (let i = 1; i <= n; i += 2) { const k = (i - 1) / 2; terms.push({ power: i, coef: F(k % 2 === 0 ? 1 : -1, factorial(i)) }); }
+  } else {
+    for (let i = 0; i <= n; i += 2) { const k = i / 2; terms.push({ power: i, coef: F(k % 2 === 0 ? 1 : -1, factorial(i)) }); }
+  }
+  const label = { exp: 'e<sup>x</sup>', sin: 'sin x', cos: 'cos x', geom: '1/(1−x)' }[kind];
+  const html = terms.map((t) => {
+    const c = t.coef, cAbs = c.abs();
+    const coefStr = cAbs.equals(F(1)) && t.power !== 0 ? '' : cAbs.toString();
+    const varStr = t.power === 0 ? '' : t.power === 1 ? 'x' : `x<sup>${t.power}</sup>`;
+    return { neg: c.isNeg(), text: coefStr + varStr };
+  });
+  const joinHtml = (parts) => {
+    let s = (parts[0].neg ? '−' : '') + parts[0].text;
+    for (let i = 1; i < parts.length; i++) s += parts[i].neg ? ` − ${parts[i].text}` : ` + ${parts[i].text}`;
+    return s;
+  };
+  const poly = joinHtml(html);
+  const stem = `Find the degree-${n} Maclaurin polynomial for f(x) = ${label}.`;
+  const steps = [
+    `Maclaurin series: f(x) ≈ Σ [f<sup>(k)</sup>(0)/k!] x<sup>k</sup>.`,
+    `P<sub>${n}</sub>(x) = ${poly}.`,
+  ];
+
+  const droppedParts = html.slice(0, -1);
+  const wrongDrop = droppedParts.length ? joinHtml(droppedParts) : '0';
+  const flippedParts = html.map((t) => ({ ...t, neg: !t.neg }));
+  const wrongFlip = joinHtml(flippedParts);
+  const wrongExtra = `${poly} + C`;
+  const seen = new Set([poly]);
+  const wrongHTML = [];
+  for (const w of [wrongDrop, wrongFlip, wrongExtra]) { if (!seen.has(w)) { seen.add(w); wrongHTML.push(w); } }
+  while (wrongHTML.length < 3) wrongHTML.push(`${poly} (all terms doubled)`);
+  return { unit: 10, topic: '10.2', topicName: 'Maclaurin Polynomials', difficulty, stem, answerHTML: poly, solution: steps, wrongHTML: wrongHTML.slice(0, 3) };
+}
+
+function genRadiusConvergence(difficulty) {
+  const c = randInt(-4, 4);
+  const b = difficulty === 1 ? randInt(2, 4) : difficulty === 2 ? randInt(2, 6) : randInt(2, 9);
+  const includeN = difficulty >= 2 && Math.random() < 0.5;
+  const stemSeries = includeN
+    ? `Σ<sub>n=1</sub><sup>∞</sup> [ n(x − ${c})<sup>n</sup> / ${b}<sup>n</sup> ]`
+    : `Σ<sub>n=1</sub><sup>∞</sup> [ (x − ${c})<sup>n</sup> / ${b}<sup>n</sup> ]`;
+  const stem = `Find the radius of convergence of the power series:<br><span class="mathblock">${stemSeries}</span>`;
+  const steps = [
+    `Apply the Ratio Test: compute L = lim<sub>n→∞</sub> |a<sub>n+1</sub>/a<sub>n</sub>|·|x − ${c}|.`,
+    includeN
+      ? `|a<sub>n+1</sub>/a<sub>n</sub>| = [(n+1)/n]·(1/${b}) → 1/${b} as n→∞.`
+      : `|a<sub>n+1</sub>/a<sub>n</sub>| = 1/${b}.`,
+    `So L = |x − ${c}|/${b}. The series converges when L &lt; 1, i.e. |x − ${c}| &lt; ${b}.`,
+    `Radius of convergence: R = ${b}.`,
+  ];
+  const answer = F(b);
+  return { unit: 10, topic: '10.3', topicName: 'Radius of Convergence (Ratio Test)', difficulty, stem, answerHTML: `R = ${answer.toString()}`, solution: steps, wrongHTML: makeNumericDistractors(answer).map((w) => `R = ${w}`) };
+}
+
+/* ---- Registry ---- */
+
+const GENERATORS = [
+  { topic: '1.1', fn: genLimitFactor },
+  { topic: '1.2', fn: genLimitInfinity },
+  { topic: '1.3', fn: genContinuityK },
+  { topic: '2.1', fn: genPowerRule },
+  { topic: '2.2', fn: genBasicRulesSum },
+  { topic: '2.3', fn: genProductRule },
+  { topic: '2.4', fn: genQuotientRule },
+  { topic: '3.1', fn: genChainNumeric },
+  { topic: '3.2', fn: genChainSymbolic },
+  { topic: '3.3', fn: genImplicit },
+  { topic: '3.4', fn: genInverseDeriv },
+  { topic: '4.1', fn: genMotion },
+  { topic: '4.2', fn: genRelatedRates },
+  { topic: '4.3', fn: genLinearApprox },
+  { topic: '4.4', fn: genLHopital },
+  { topic: '5.1', fn: genFirstDerivTest },
+  { topic: '5.2', fn: genConcavity },
+  { topic: '5.3', fn: genOptimization },
+  { topic: '6.1', fn: genDefiniteIntegral },
+  { topic: '6.2', fn: genFTCAccum },
+  { topic: '6.3', fn: genUSub },
+  { topic: '7.1', fn: genSeparableDE },
+  { topic: '7.2', fn: genGrowthDecay },
+  { topic: '8.1', fn: genAverageValue },
+  { topic: '8.2', fn: genAreaBetween },
+  { topic: '8.3', fn: genVolume },
+  { topic: '9.1', fn: genParametricDeriv },
+  { topic: '9.2', fn: genPolarArea },
+  { topic: '10.1', fn: genGeometricSeries },
+  { topic: '10.2', fn: genMaclaurin },
+  { topic: '10.3', fn: genRadiusConvergence },
+];
+
+function generateProblem(topicCode, difficulty) {
+  // Topics may have more than one generator registered (a hand-written
+  // template plus a compositional-engine variant, registered below) —
+  // pick uniformly at random among whichever are registered for this topic.
+  const entries = GENERATORS.filter((g) => g.topic === topicCode);
+  if (!entries.length) return null;
+  return choice(entries).fn(difficulty);
+}
+</script>
+
+<script>
+/* ============================================================
+ * compositional.js — generator variants built on the expr.js
+ * symbolic engine instead of one hand-picked function shape per
+ * topic. These are ADDED to the GENERATORS registry above as
+ * extra entries for topics 2.2, 2.3, 2.4, 3.2, 6.1, 6.3, and
+ * 8.1 — the hand-written generators for those topics stay
+ * registered too, so generateProblem() picks at random among
+ * all variants for a topic.
+ *
+ * Every derivative here is produced by expr.js's diff(), which
+ * is exact by construction and was verified against finite
+ * differences across thousands of random trees during
+ * development. Integration problems use the same "build the
+ * antiderivative, then differentiate it" trick as the original
+ * u-substitution generator, generalized to more outer-function
+ * shapes — no general symbolic integration is attempted anywhere.
+ * ============================================================ */
+
+/** Reconstruct an exact Frac from an evalSmart() result string ("n" or
+ * "n/d") — needed because evalResult.value is a lossy float and Frac.of()
+ * would round it (e.g. 0.5 -> 1), silently corrupting the fraction. */
+function parseFracStr(str) {
+  if (str.includes('/')) { const [n, d] = str.split('/').map(Number); return F(n, d); }
+  return F(Number(str));
+}
+
+/* ---- Shared distractor builders ---- */
+
+function buildSymbolicDerivativeDistractors(f, correctNode) {
+  const correctHTML = toHTML(correctNode);
+  const candidates = [
+    diffBuggy(f, { noChain: true }),
+    diffBuggy(f, { cosSign: true }),
+    flipRandomTermSign(correctNode),
+  ];
+  const seen = new Set([correctHTML]);
+  const out = [];
+  for (const c of candidates) {
+    const html = toHTML(c);
+    if (!seen.has(html)) { seen.add(html); out.push(html); }
+  }
+  let guard = 0;
+  while (out.length < 3 && guard < 20) {
+    guard++;
+    const jittered = scaleLeadingCoef(correctNode, F(choice([2, -1, 3, -2])));
+    const html = toHTML(jittered);
+    if (!seen.has(html)) { seen.add(html); out.push(html); }
+  }
+  return out.slice(0, 3);
+}
+
+function buildAntiderivativeDistractors(F_, correctHTML) {
+  const candidates = [
+    scaleLeadingCoef(F_, F(-1)),
+    scaleLeadingCoef(F_, F(2)),
+    scaleLeadingCoef(F_, F(1, 2)),
+  ];
+  const seen = new Set([correctHTML]);
+  const out = [];
+  for (const c of candidates) {
+    const html = `${toHTML(c)} + C`;
+    if (!seen.has(html)) { seen.add(html); out.push(html); }
+  }
+  let guard = 0;
+  while (out.length < 3 && guard < 20) {
+    guard++;
+    const factor = F(choice([3, -2, 4, -3]), choice([1, 2]));
+    const html = `${toHTML(scaleLeadingCoef(F_, factor))} + C`;
+    if (!seen.has(html)) { seen.add(html); out.push(html); }
+  }
+  return out.slice(0, 3);
+}
+
+/* ---- 2.2 — Derivatives of Trig, Exponential & Log Sums (composed variant) ---- */
+
+function genComposedDerivativeSum(difficulty) {
+  const f = randomExpr(difficulty);
+  const fp = simplify(diff(f));
+  const correctHTML = toHTML(fp);
+  const stem = `Let f(x) = ${toHTML(f)}. Find f&prime;(x).`;
+  const steps = [
+    `Differentiate term by term, applying the chain rule to any composite terms (an inner linear function contributes a constant multiplier).`,
+    `f&prime;(x) = ${correctHTML}.`,
+  ];
+  return { unit: 2, topic: '2.2', topicName: 'Derivatives of Trig, Exponential & Log Sums', difficulty, stem, answerHTML: correctHTML, solution: steps, wrongHTML: buildSymbolicDerivativeDistractors(f, fp) };
+}
+
+/* ---- 3.2 — The Chain Rule, Symbolic Derivative (deep composition variant) ---- */
+
+function genDeepChainRule(difficulty) {
+  const f = randomComposedSingle(difficulty);
+  const fp = simplify(diff(f));
+  const correctHTML = toHTML(fp);
+  const stem = `Let f(x) = ${toHTML(f)}. Find f&prime;(x).`;
+  const steps = [
+    `Apply the chain rule at each layer of composition, working from the outside in and multiplying by the derivative of each inner function.`,
+    `f&prime;(x) = ${correctHTML}.`,
+  ];
+  return { unit: 3, topic: '3.2', topicName: 'The Chain Rule (Symbolic Derivative)', difficulty, stem, answerHTML: correctHTML, solution: steps, wrongHTML: buildSymbolicDerivativeDistractors(f, fp) };
+}
+
+/* ---- 2.3 / 2.4 — Product & Quotient Rule with mixed factor types ---- */
+
+const SIMPLE_FACTOR_KINDS = ['poly', 'sin', 'cos', 'exp', 'pow'];
+
+function genProductRuleMixed(difficulty) {
+  const range = difficulty === 1 ? 4 : difficulty === 2 ? 6 : 8;
+  const u = randomAtomicTerm(difficulty, { kinds: SIMPLE_FACTOR_KINDS, coeffRange: range });
+  const v = randomAtomicTerm(difficulty, { kinds: SIMPLE_FACTOR_KINDS, coeffRange: range });
+  const f = mulN(u, v);
+  const fp = simplify(diff(f));
+  const x0 = randInt(-2, 2);
+  const evalResult = evalSmart(fp, x0);
+  const stem = `Let f(x) = (${toHTML(u)})(${toHTML(v)}). Use the product rule to find f&prime;(${x0})${evalResult.exact ? '' : ' (round to three decimal places)'}.`;
+  const steps = [
+    `Product rule: f&prime;(x) = u&prime;(x)v(x) + u(x)v&prime;(x), where u(x) = ${toHTML(u)} and v(x) = ${toHTML(v)}.`,
+    `f&prime;(x) = ${toHTML(fp)}.`,
+    `f&prime;(${x0}) ${evalResult.exact ? '=' : '≈'} ${evalResult.str}.`,
+  ];
+  const wrongHTML = evalResult.exact ? makeNumericDistractors(parseFracStr(evalResult.str)) : makeDecimalDistractors(evalResult.value, 3);
+  return { unit: 2, topic: '2.3', topicName: 'The Product Rule', difficulty, stem, answerHTML: evalResult.str, solution: steps, wrongHTML };
+}
+
+function genQuotientRuleMixed(difficulty) {
+  const range = difficulty === 1 ? 4 : difficulty === 2 ? 6 : 8;
+  let u, v, x0, denAt;
+  do {
+    u = randomAtomicTerm(difficulty, { kinds: SIMPLE_FACTOR_KINDS, coeffRange: range });
+    v = randomAtomicTerm(difficulty, { kinds: SIMPLE_FACTOR_KINDS, coeffRange: range });
+    x0 = randInt(-2, 2);
+    denAt = evalNum(v, x0);
+  } while (!Number.isFinite(denAt) || Math.abs(denAt) < 0.2);
+  const f = divN(u, v);
+  const fp = simplify(diff(f));
+  const evalResult = evalSmart(fp, x0);
+  const stem = `Let f(x) = (${toHTML(u)}) / (${toHTML(v)}). Use the quotient rule to find f&prime;(${x0})${evalResult.exact ? '' : ' (round to three decimal places)'}.`;
+  const steps = [
+    `Quotient rule: f&prime;(x) = [u&prime;(x)v(x) − u(x)v&prime;(x)] / [v(x)]<sup>2</sup>, where u(x) = ${toHTML(u)} and v(x) = ${toHTML(v)}.`,
+    `f&prime;(x) = ${toHTML(fp)}.`,
+    `f&prime;(${x0}) ${evalResult.exact ? '=' : '≈'} ${evalResult.str}.`,
+  ];
+  const wrongHTML = evalResult.exact ? makeNumericDistractors(parseFracStr(evalResult.str)) : makeDecimalDistractors(evalResult.value, 3);
+  return { unit: 2, topic: '2.4', topicName: 'The Quotient Rule', difficulty, stem, answerHTML: evalResult.str, solution: steps, wrongHTML };
+}
+
+/* ---- 6.3 — Antiderivatives by u-Substitution (generalized outer function) ---- */
+
+function genUSubGeneral(difficulty) {
+  const { F: F_, f } = randomAntiderivative(difficulty);
+  const correctHTML = `${toHTML(F_)} + C`;
+  const stem = `Find the indefinite integral:<br><span class="mathblock">∫ ${toHTML(f)} dx</span>`;
+  const steps = [
+    `Recognize this as a chain-rule derivative in reverse: the integrand is of the form g&prime;(x)·h&prime;(g(x)) for some inner function g.`,
+    `An antiderivative is F(x) = ${toHTML(F_)}, since differentiating F confirms F&prime;(x) = ${toHTML(f)}.`,
+    `∫ ${toHTML(f)} dx = ${correctHTML}.`,
+  ];
+  return { unit: 6, topic: '6.3', topicName: 'Antiderivatives by u-Substitution', difficulty, stem, answerHTML: correctHTML, solution: steps, wrongHTML: buildAntiderivativeDistractors(F_, correctHTML) };
+}
+
+/* ---- 6.1 — Definite Integrals via antiderivative-first construction ---- */
+
+function genDefiniteIntegralGeneral(difficulty) {
+  const { F: F_, f } = randomAntiderivative(difficulty);
+  const a = randInt(0, 2);
+  const b = randInt(a + 1, a + 3);
+  const Fb = evalSmart(F_, b), Fa = evalSmart(F_, a);
+  const exact = Fb.exact && Fa.exact;
+  const value = Fb.value - Fa.value;
+  const resultStr = exact ? fracFromEvalResults(Fb, Fa).toString() : value.toFixed(3);
+  const stem = `Evaluate the definite integral:<br><span class="mathblock">∫<sub>${a}</sub><sup>${b}</sup> (${toHTML(f)}) dx</span>`;
+  const steps = [
+    `Find an antiderivative: F(x) = ${toHTML(F_)} (check: F&prime;(x) = ${toHTML(f)}).`,
+    `By the Fundamental Theorem of Calculus: F(${b}) − F(${a}) = ${Fb.str} − (${Fa.str}) ${exact ? '=' : '≈'} ${resultStr}.`,
+  ];
+  const wrongHTML = exact ? makeNumericDistractors(fracFromEvalResults(Fb, Fa)) : makeDecimalDistractors(value, 3);
+  return { unit: 6, topic: '6.1', topicName: 'Definite Integrals (FTC)', difficulty, stem, answerHTML: resultStr, solution: steps, wrongHTML };
+}
+
+/* ---- 8.1 — Average Value via antiderivative-first construction ---- */
+
+function genAverageValueGeneral(difficulty) {
+  const { F: F_, f } = randomAntiderivative(difficulty);
+  const a = randInt(0, 2);
+  const b = randInt(a + 1, a + 3);
+  const Fb = evalSmart(F_, b), Fa = evalSmart(F_, a);
+  const exact = Fb.exact && Fa.exact;
+  const integral = exact ? fracFromEvalResults(Fb, Fa) : null;
+  const value = exact ? integral.toFloat() / (b - a) : (Fb.value - Fa.value) / (b - a);
+  const resultStr = exact ? integral.div(F(b - a)).toString() : value.toFixed(3);
+  const stem = `Find the average value of f(x) = ${toHTML(f)} on the interval [${a}, ${b}].`;
+  const steps = [
+    `Average value formula: f<sub>avg</sub> = (1/(b−a)) ∫<sub>a</sub><sup>b</sup> f(x) dx.`,
+    `An antiderivative is F(x) = ${toHTML(F_)}, so ∫<sub>${a}</sub><sup>${b}</sup> f(x) dx = F(${b}) − F(${a}) = ${Fb.str} − (${Fa.str}).`,
+    `f<sub>avg</sub> ${exact ? '=' : '≈'} ${resultStr}.`,
+  ];
+  const wrongHTML = exact ? makeNumericDistractors(integral.div(F(b - a))) : makeDecimalDistractors(value, 3);
+  return { unit: 8, topic: '8.1', topicName: 'Average Value of a Function', difficulty, stem, answerHTML: resultStr, solution: steps, wrongHTML };
+}
+
+function fracFromEvalResults(rb, ra) { return parseFracStr(rb.str).sub(parseFracStr(ra.str)); }
+
+/* ---- Register alongside the existing hand-written generators ---- */
+
+GENERATORS.push(
+  { topic: '2.2', fn: genComposedDerivativeSum },
+  { topic: '3.2', fn: genDeepChainRule },
+  { topic: '2.3', fn: genProductRuleMixed },
+  { topic: '2.4', fn: genQuotientRuleMixed },
+  { topic: '6.3', fn: genUSubGeneral },
+  { topic: '6.1', fn: genDefiniteIntegralGeneral },
+  { topic: '8.1', fn: genAverageValueGeneral },
+);
+</script>
+
+<script>
+/* ============================================================
+ * app.js — wires the controls, the Units & Topics dropdown,
+ * worksheet rendering, the student/teacher toggle, and
+ * client-side PDF generation (via the browser's native
+ * print-to-PDF) for the AP Calculus generator.
+ * ============================================================ */
+
+const DIFFICULTY_LABELS = { 1: 'Easy', 2: 'Medium', 3: 'Hard' };
+
+function unitsForCourse(course) {
+  return AP_CALC_CURRICULUM.filter((u) => (course === 'ab' ? u.course !== 'bc' : true));
+}
+
+function buildTopicsPanel(course) {
+  const unitListEl = document.getElementById('unitList');
+  unitListEl.innerHTML = '';
+
+  for (const unit of unitsForCourse(course)) {
+    const block = document.createElement('div');
+    block.className = 'unit-block';
+
+    const header = document.createElement('div');
+    header.className = 'unit-block-header';
+    const unitCb = document.createElement('input');
+    unitCb.type = 'checkbox';
+    unitCb.checked = true;
+    unitCb.id = `unit-${unit.unit}`;
+    const unitLabel = document.createElement('label');
+    unitLabel.htmlFor = unitCb.id;
+    unitLabel.textContent = `Unit ${unit.unit}: ${unit.name}`;
+    header.append(unitCb, unitLabel);
+    block.appendChild(header);
+
+    const topicEls = [];
+    for (const topic of unit.topics) {
+      const row = document.createElement('div');
+      row.className = 'topic-row';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = true;
+      cb.dataset.topic = topic.code;
+      cb.id = `topic-${topic.code}`;
+      const label = document.createElement('label');
+      label.htmlFor = cb.id;
+      label.innerHTML = `<span class="topic-code">${topic.code}</span>${topic.name}`;
+      row.append(cb, label);
+      block.appendChild(row);
+      topicEls.push(cb);
+      cb.addEventListener('change', () => {
+        unitCb.checked = topicEls.every((t) => t.checked);
+        unitCb.indeterminate = !unitCb.checked && topicEls.some((t) => t.checked);
+        updateTopicsSummary();
+      });
+    }
+    unitCb.addEventListener('change', () => {
+      topicEls.forEach((t) => { t.checked = unitCb.checked; });
+      unitCb.indeterminate = false;
+      updateTopicsSummary();
+    });
+    unitListEl.appendChild(block);
+  }
+  updateTopicsSummary();
+}
+
+function updateTopicsSummary() {
+  const all = Array.from(document.querySelectorAll('#unitList input[data-topic]'));
+  const selected = all.filter((cb) => cb.checked);
+  const el = document.getElementById('topicsSummary');
+  if (selected.length === all.length) el.textContent = 'All units & topics';
+  else if (selected.length === 0) el.textContent = 'No topics selected';
+  else el.textContent = `${selected.length} of ${all.length} topics selected`;
+}
+
+function getSelectedTopics() {
+  return Array.from(document.querySelectorAll('#unitList input[data-topic]:checked')).map((cb) => cb.dataset.topic);
+}
+
+/* ---- Dropdown open/close ---- */
+
+function initDropdown() {
+  const dropdown = document.getElementById('topicsDropdown');
+  const toggle = document.getElementById('topicsToggle');
+  const panel = document.getElementById('topicsPanel');
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    toggle.setAttribute('aria-expanded', String(willOpen));
+  });
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) {
+      panel.hidden = true;
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.getElementById('selectAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('#unitList input[type=checkbox]').forEach((cb) => { cb.checked = true; cb.indeterminate = false; });
+    updateTopicsSummary();
+  });
+  document.getElementById('clearAllBtn').addEventListener('click', () => {
+    document.querySelectorAll('#unitList input[type=checkbox]').forEach((cb) => { cb.checked = false; cb.indeterminate = false; });
+    updateTopicsSummary();
+  });
+}
+
+/* ---- Generation ---- */
+
+function pickDifficulty(setting) {
+  return setting === 'mixed' ? randInt(1, 3) : parseInt(setting, 10);
+}
+function pickType(setting) {
+  return setting === 'mixed' ? (Math.random() < 0.5 ? 'mc' : 'frq') : setting;
+}
+
+function generateSet() {
+  const settings = {
+    course: document.getElementById('courseSelect').value,
+    count: parseInt(document.getElementById('countSelect').value, 10),
+    type: document.getElementById('typeSelect').value,
+    difficulty: document.getElementById('difficultySelect').value,
+  };
+
+  let topics = getSelectedTopics();
+  if (topics.length === 0) {
+    topics = unitsForCourse(settings.course).flatMap((u) => u.topics.map((t) => t.code));
+  }
+
+  const problems = [];
+  let guard = 0;
+  while (problems.length < settings.count && guard < settings.count * 20) {
+    guard++;
+    const topicCode = choice(topics);
+    const difficulty = pickDifficulty(settings.difficulty);
+    const p = generateProblem(topicCode, difficulty);
+    if (!p) continue;
+    const wantMc = pickType(settings.type) === 'mc';
+    p.kind = wantMc && p.wrongHTML && p.wrongHTML.length >= 3 ? 'mc' : 'frq';
+    problems.push(p);
+  }
+  renderWorksheet(problems, settings);
+}
+
+function renderProblem(p, index) {
+  const letters = ['A', 'B', 'C', 'D'];
+  let bodyHTML;
+  if (p.kind === 'mc') {
+    const options = shuffle([{ html: p.answerHTML, correct: true }, ...p.wrongHTML.slice(0, 3).map((h) => ({ html: h, correct: false }))]);
+    bodyHTML = `<div class="choices">${options.map((o, i) => `<div class="choice${o.correct ? ' is-correct' : ''}"><span class="choice-key">${letters[i]}.</span><span class="choice-text">${o.html}</span></div>`).join('')}</div>`;
+  } else {
+    bodyHTML = `<div class="frq-lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>`;
+  }
+  const answerBlock = `<div class="answer-block">
+      <div class="answer-line">Answer: ${p.answerHTML}</div>
+      <ol>${p.solution.map((s) => `<li>${s}</li>`).join('')}</ol>
+    </div>`;
+  return `<article class="problem">
+      <div class="problem-head">
+        <span class="qnum">${index + 1}.</span>
+        <span class="meta">Unit ${p.unit} (${p.topic}) • ${p.topicName} • ${DIFFICULTY_LABELS[p.difficulty] || 'Mixed'} • ${p.kind === 'mc' ? 'Multiple Choice' : 'Free Response'}</span>
+      </div>
+      <div class="prompt">${p.stem}</div>
+      ${bodyHTML}
+      ${answerBlock}
+    </article>`;
+}
+
+function renderWorksheet(problems, settings) {
+  const list = document.getElementById('problemList');
+  if (problems.length === 0) {
+    list.innerHTML = '<p class="empty-state">No problems could be generated for the selected options. Try selecting more units or topics.</p>';
+    document.getElementById('worksheetMeta').textContent = '';
+    return;
+  }
+  list.innerHTML = problems.map((p, i) => renderProblem(p, i)).join('');
+  document.getElementById('worksheetTitle').textContent = settings.course === 'bc' ? 'AP Calculus BC Problem Set' : 'AP Calculus AB Problem Set';
+  const diffText = settings.difficulty === 'mixed' ? 'Mixed difficulty' : DIFFICULTY_LABELS[parseInt(settings.difficulty, 10)];
+  const typeText = { mixed: 'Mixed (MC + FRQ)', mc: 'Multiple Choice', frq: 'Free Response' }[settings.type];
+  document.getElementById('worksheetMeta').textContent = `${problems.length} questions • ${diffText} • ${typeText} • Generated ${new Date().toLocaleDateString()}`;
+}
+
+/* ---- View toggle (student / teacher) ---- */
+
+function initViewToggle() {
+  const toggle = document.getElementById('viewToggle');
+  const worksheet = document.getElementById('worksheet');
+  const studentLabel = document.getElementById('viewLabelStudent');
+  const teacherLabel = document.getElementById('viewLabelTeacher');
+  studentLabel.classList.add('active');
+  toggle.addEventListener('click', () => {
+    const next = toggle.getAttribute('aria-checked') !== 'true';
+    toggle.setAttribute('aria-checked', String(next));
+    worksheet.classList.toggle('teacher-mode', next);
+    studentLabel.classList.toggle('active', !next);
+    teacherLabel.classList.toggle('active', next);
+  });
+}
+
+/* ---- Init ---- */
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildTopicsPanel(document.getElementById('courseSelect').value);
+  initDropdown();
+  initViewToggle();
+
+  document.getElementById('courseSelect').addEventListener('change', (e) => buildTopicsPanel(e.target.value));
+  document.getElementById('generateBtn').addEventListener('click', generateSet);
+  document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+  generateSet();
+});
+</script>

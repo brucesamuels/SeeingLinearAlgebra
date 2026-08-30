@@ -1,5 +1,7 @@
 <title>AP Calculus Problem Generator</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ============================================================
    Design tokens — "fountain pen on graph paper": a precise
@@ -18,6 +20,7 @@
   --good: #2E7D53;
   --good-soft: #E5F1E9;
   --good-line: #A9CFB8;
+  --error: #B3453B;
   --shadow: 0 1px 2px rgba(29,39,49,0.06), 0 8px 24px rgba(29,39,49,0.08);
   --radius: 3px;
 }
@@ -35,6 +38,7 @@
     --good: #5CB988;
     --good-soft: #16261E;
     --good-line: #2E5A41;
+    --error: #E2857A;
     --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
   }
 }
@@ -51,6 +55,7 @@
   --good: #5CB988;
   --good-soft: #16261E;
   --good-line: #2E5A41;
+  --error: #E2857A;
   --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
 }
 
@@ -292,6 +297,9 @@ select:hover { border-color: var(--ink-faint); }
 .btn-secondary { background: transparent; color: var(--accent); border-color: var(--accent); }
 .btn-secondary:hover { background: var(--accent-soft); }
 .hint { font-size: 0.78rem; color: var(--ink-faint); }
+.pdf-status { font-size: 0.78rem; color: var(--accent); font-weight: 600; min-height: 1.2em; }
+.pdf-status.is-error { color: var(--error); }
+.btn:disabled { opacity: 0.6; cursor: default; }
 
 /* ---- Worksheet ---- */
 
@@ -494,7 +502,8 @@ select:hover { border-color: var(--ink-faint); }
     <div class="action-row">
       <button type="button" class="btn btn-primary" id="generateBtn">Generate Problem Set</button>
       <button type="button" class="btn btn-secondary" id="printBtn">Print / Save as PDF</button>
-      <span class="hint">Uses your browser's print dialog — choose "Save as PDF" as the destination.</span>
+      <span class="hint" id="pdfHint">Saves what's on screen as a PDF — student worksheet or teacher answer key, depending on the toggle above.</span>
+      <span class="pdf-status" id="pdfStatus" role="status" aria-live="polite"></span>
     </div>
   </section>
 
@@ -2614,6 +2623,146 @@ function renderWorksheet(problems, settings) {
   document.getElementById('worksheetMeta').textContent = `${problems.length} questions • ${diffText} • ${typeText} • Generated ${new Date().toLocaleDateString()}`;
 }
 
+/* ---- PDF export ----
+ * Artifacts run inside a sandboxed viewer, where window.print() cannot
+ * open the browser's native print dialog — so the primary path here
+ * offers a real generated PDF through the platform's `downloads`
+ * capability (see claude.use('downloads')). When that capability isn't
+ * available (e.g. the page opened as its own top-level tab, or a plain
+ * copy of this file opened outside any Artifact viewer), it falls back
+ * to window.print(), which works fine in an unsandboxed context and
+ * lets the browser's own print dialog save a PDF instead.
+ */
+
+/** Pixel offsets (in the html2canvas-scaled coordinate space) of every
+ * problem's top edge, so page breaks can land between problems instead
+ * of slicing one in half. */
+function computeProblemBreakpoints(scale) {
+  const worksheet = document.getElementById('worksheet');
+  const top0 = worksheet.getBoundingClientRect().top;
+  return Array.from(worksheet.querySelectorAll('.problem'))
+    .map((p) => (p.getBoundingClientRect().top - top0) * scale);
+}
+
+async function captureWorksheetCanvas() {
+  const worksheet = document.getElementById('worksheet');
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) { /* ignore */ } }
+  return html2canvas(worksheet, {
+    scale: 2,
+    backgroundColor: '#ffffff',
+    useCORS: true,
+    onclone: (clonedDoc) => {
+      // Force the same print-safe (light, high-contrast) colors used by
+      // the @media print rules above, regardless of the viewer's theme —
+      // a saved worksheet should always read like paper, not a dark UI.
+      // Colors ONLY, never geometry: computeProblemBreakpoints() measures
+      // positions on the live (un-cloned) DOM before this runs, so any
+      // change here to padding/border/margin/font-size would desync those
+      // breakpoints from where content actually lands in the captured
+      // canvas — silently reintroducing exactly the mid-problem page cuts
+      // this whole breakpoint scheme exists to avoid. border-radius and
+      // box-shadow are pure paint (no layout effect), so those stay safe
+      // to override alongside colors.
+      const style = clonedDoc.createElement('style');
+      style.textContent = `
+        #worksheet { border-radius: 0 !important; box-shadow: none !important; background: #fff !important; border-color: #ccc !important; }
+        #worksheet, #worksheet * { color: #1a1a1a !important; }
+        #worksheet .worksheet-title-row { border-bottom-color: #000 !important; }
+        #worksheet .worksheet-meta, #worksheet .meta, #worksheet .empty-state, #worksheet .field { color: #555 !important; }
+        #worksheet .problem { border-bottom-color: #ddd !important; }
+        #worksheet .frq-lines .line { border-bottom-color: #ccc !important; }
+        #worksheet .answer-block { background: #f2f2f2 !important; border-color: #999 !important; }
+        #worksheet .answer-block .answer-line { color: #000 !important; }
+        #worksheet .teacher-mode .choice.is-correct { background: #f2f2f2 !important; outline-color: #999 !important; }
+        #worksheet .teacher-mode .choice.is-correct .choice-key, #worksheet .teacher-mode .choice.is-correct::after { color: #000 !important; }
+      `;
+      clonedDoc.head.appendChild(style);
+    },
+  });
+}
+
+async function generateWorksheetPdf() {
+  const scale = 2;
+  const canvas = await captureWorksheetCanvas();
+  const breakpoints = computeProblemBreakpoints(scale);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
+  const margin = 36; // 0.5in
+  const usableWidthPt = pdf.internal.pageSize.getWidth() - margin * 2;
+  const usableHeightPt = pdf.internal.pageSize.getHeight() - margin * 2;
+  const pxPerPt = canvas.width / usableWidthPt;
+  const maxPageHeightPx = usableHeightPt * pxPerPt;
+
+  let renderedPx = 0;
+  let firstPage = true;
+  while (renderedPx < canvas.height) {
+    const hardEndPx = Math.min(renderedPx + maxPageHeightPx, canvas.height);
+    const candidates = breakpoints.filter((b) => b > renderedPx + 1 && b <= hardEndPx);
+    const endPx = candidates.length ? candidates[candidates.length - 1] : hardEndPx;
+    const sliceHeightPx = Math.max(1, endPx - renderedPx);
+
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeightPx;
+    const ctx = pageCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx.drawImage(canvas, 0, renderedPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+    if (!firstPage) pdf.addPage();
+    pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, usableWidthPt, sliceHeightPx / pxPerPt);
+    renderedPx = endPx;
+    firstPage = false;
+  }
+  return pdf.output('blob');
+}
+
+function pdfFilename() {
+  const course = document.getElementById('courseSelect').value === 'bc' ? 'BC' : 'AB';
+  const teacherMode = document.getElementById('worksheet').classList.contains('teacher-mode');
+  return `AP-Calculus-${course}-Problem-Set${teacherMode ? '-Answer-Key' : ''}.pdf`;
+}
+
+async function handlePdfClick() {
+  const btn = document.getElementById('printBtn');
+  const statusEl = document.getElementById('pdfStatus');
+  const setStatus = (msg, isError) => {
+    statusEl.textContent = msg;
+    statusEl.classList.toggle('is-error', Boolean(isError));
+  };
+
+  let downloadsApi = null;
+  if (window.claude && typeof window.claude.use === 'function') {
+    try { downloadsApi = await window.claude.use('downloads'); } catch (e) { downloadsApi = null; }
+  }
+
+  if (!downloadsApi) {
+    window.print(); // unsandboxed context: the browser's own print dialog can save a PDF
+    return;
+  }
+
+  btn.disabled = true;
+  setStatus('Generating PDF…');
+  try {
+    const blob = await generateWorksheetPdf();
+    await downloadsApi.save({ filename: pdfFilename(), data: blob });
+    setStatus('Saved.');
+    setTimeout(() => setStatus(''), 2500);
+  } catch (err) {
+    if (err && err.code === 'declined') {
+      setStatus('');
+    } else if (err && err.code === 'rate_limited') {
+      setStatus('A save prompt is already open — try again in a moment.', true);
+    } else if (err && err.code === 'too_large') {
+      setStatus('This problem set is too large to save as one PDF — try fewer questions.', true);
+    } else {
+      setStatus("Couldn't generate the PDF. Please try again.", true);
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 /* ---- View toggle (student / teacher) ---- */
 
 function initViewToggle() {
@@ -2640,7 +2789,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('courseSelect').addEventListener('change', (e) => buildTopicsPanel(e.target.value));
   document.getElementById('generateBtn').addEventListener('click', generateSet);
-  document.getElementById('printBtn').addEventListener('click', () => window.print());
+  document.getElementById('printBtn').addEventListener('click', handlePdfClick);
 
   generateSet();
 });

@@ -51,7 +51,7 @@ const AP_CALC_CURRICULUM = [
   {
     unit: 6, course: 'both', name: 'Integration and Accumulation of Change',
     topics: [
-      { code: '6.1', name: 'Definite Integrals of Polynomials (FTC)' },
+      { code: '6.1', name: 'Definite Integrals (FTC)' },
       { code: '6.2', name: 'Accumulation Functions (FTC Part 1)' },
       { code: '6.3', name: 'Antiderivatives by u-Substitution' },
     ],

@@ -113,7 +113,7 @@ function genContinuityK(difficulty) {
   const left = F(A).mul(F(c)).add(F(B));
   const K = left.sub(F(M)).div(F(c * c));
   const stem = `The function f is defined by<br>` +
-    `<span class="mathblock">f(x) = ${A}x ${B >= 0 ? '+' : '−'} ${Math.abs(B)}, &nbsp; x &lt; ${c}<br>` +
+    `<span class="mathblock">f(x) = ${polyToHTML(linear(A, B))}, &nbsp; x &lt; ${c}<br>` +
     `f(x) = kx<sup>2</sup> ${M >= 0 ? '+' : '−'} ${Math.abs(M)}, &nbsp; x ≥ ${c}</span><br>` +
     `For what value of k is f continuous at x = ${c}?`;
   const steps = [
@@ -179,23 +179,25 @@ function genBasicRulesSum(difficulty) {
     for (let i = 1; i < terms.length; i++) html += terms[i].sign < 0 ? ` − ${terms[i].text}` : ` + ${terms[i].text}`;
     return html;
   };
+  // Coefficient magnitude for display: omit a bare "1" (e.g. "x", not "1x").
+  const c1 = (v) => (Math.abs(v) === 1 ? '' : `${Math.abs(v)}`);
 
   const termsStem = [
-    { sign: A < 0 ? -1 : 1, text: `${Math.abs(A)}x<sup>${n}</sup>` },
-    { sign: B < 0 ? -1 : 1, text: `${Math.abs(B)}sin x` },
-    { sign: C < 0 ? -1 : 1, text: `${Math.abs(C)}cos x` },
+    { sign: A < 0 ? -1 : 1, text: `${c1(A)}x<sup>${n}</sup>` },
+    { sign: B < 0 ? -1 : 1, text: `${c1(B)}sin x` },
+    { sign: C < 0 ? -1 : 1, text: `${c1(C)}cos x` },
   ];
-  if (includeExp) termsStem.push({ sign: D < 0 ? -1 : 1, text: `${Math.abs(D)}e<sup>x</sup>` });
-  if (includeLn) termsStem.push({ sign: E < 0 ? -1 : 1, text: `${Math.abs(E)}ln x` });
+  if (includeExp) termsStem.push({ sign: D < 0 ? -1 : 1, text: `${c1(D)}e<sup>x</sup>` });
+  if (includeLn) termsStem.push({ sign: E < 0 ? -1 : 1, text: `${c1(E)}ln x` });
   const stemExpr = joinTerms(termsStem);
 
   const coefAn = A * n;
   const derivTerms = [
-    { sign: coefAn < 0 ? -1 : 1, text: n - 1 === 1 ? `${Math.abs(coefAn)}x` : `${Math.abs(coefAn)}x<sup>${n - 1}</sup>` },
-    { sign: B < 0 ? -1 : 1, text: `${Math.abs(B)}cos x` },
-    { sign: C < 0 ? 1 : -1, text: `${Math.abs(C)}sin x` }, // d/dx[C cos x] = -C sin x
+    { sign: coefAn < 0 ? -1 : 1, text: n - 1 === 1 ? `${c1(coefAn)}x` : `${c1(coefAn)}x<sup>${n - 1}</sup>` },
+    { sign: B < 0 ? -1 : 1, text: `${c1(B)}cos x` },
+    { sign: C < 0 ? 1 : -1, text: `${c1(C)}sin x` }, // d/dx[C cos x] = -C sin x
   ];
-  if (includeExp) derivTerms.push({ sign: D < 0 ? -1 : 1, text: `${Math.abs(D)}e<sup>x</sup>` });
+  if (includeExp) derivTerms.push({ sign: D < 0 ? -1 : 1, text: `${c1(D)}e<sup>x</sup>` });
   if (includeLn) derivTerms.push({ sign: E < 0 ? -1 : 1, text: `${Math.abs(E)}/x` });
   const derivExpr = joinTerms(derivTerms);
 
@@ -632,7 +634,7 @@ function genDefiniteIntegral(difficulty) {
     `Find an antiderivative: F(x) = ${polyToHTML(P)}.`,
     `By the Fundamental Theorem of Calculus: F(${b}) − F(${a}) = ${Pb.toString()} − (${Pa.toString()}) = ${answer.toString()}.`,
   ];
-  return { unit: 6, topic: '6.1', topicName: 'Definite Integrals of Polynomials (FTC)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+  return { unit: 6, topic: '6.1', topicName: 'Definite Integrals (FTC)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
 }
 
 function genFTCAccum(difficulty) {
@@ -983,9 +985,13 @@ const GENERATORS = [
 ];
 
 function generateProblem(topicCode, difficulty) {
-  const entry = GENERATORS.find((g) => g.topic === topicCode);
-  if (!entry) return null;
-  return entry.fn(difficulty);
+  // Topics may have more than one generator registered (e.g. a hand-written
+  // template plus a compositional-engine variant from compositional.js,
+  // which pushes extra entries onto GENERATORS after this file loads) —
+  // pick uniformly at random among whichever are registered for this topic.
+  const entries = GENERATORS.filter((g) => g.topic === topicCode);
+  if (!entries.length) return null;
+  return choice(entries).fn(difficulty);
 }
 
 if (typeof module !== 'undefined') {

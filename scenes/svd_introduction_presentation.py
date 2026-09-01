@@ -81,7 +81,7 @@ class SingularValueDecompositionIntroductionPresentation(Scene):
             VGroup(MathTex(r"A^TA=", font_size=41), gram_matrix).arrange(RIGHT, buff=0.14),
         ).arrange(RIGHT, buff=0.58).move_to(DOWN * 0.05)
         callback = Text(
-            "CP205 proved that this Gram matrix is positive definite.",
+            "We proved earlier that this Gram matrix is positive definite.",
             font_size=29,
             color=GREEN_C,
         ).to_edge(DOWN, buff=0.72)

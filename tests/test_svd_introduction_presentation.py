@@ -45,6 +45,7 @@ def test_scene_states_svd_and_preserves_later_scope():
     forbidden = ("pseudoinverse", "low-rank", "zero singular value", "minimum principle")
     assert not any(word.lower() in TEXT.lower() for word in forbidden)
     assert "CP208" not in TEXT
+    assert "CP205" not in TEXT
 
 
 def test_zero_entry_in_u_is_explicitly_centered_in_its_cell():

@@ -168,7 +168,7 @@
     const header = document.createElement("div");
     header.className = "worksheet-header";
     header.innerHTML = `
-      <h2>AP Precalculus Practice Problem Set${isTeacher ? '<span class="answer-key-badge">Teacher Answer Key</span>' : ""}</h2>
+      <h2>Precalculus Practice Problem Set${isTeacher ? '<span class="answer-key-badge">Teacher Answer Key</span>' : ""}</h2>
       <div class="meta">${currentProblems.length} questions &middot; ${new Date().toLocaleDateString()}</div>
       ${
         isTeacher

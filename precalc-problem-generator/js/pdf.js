@@ -44,7 +44,7 @@ function generateWorksheetPdf(problems, options) {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
   ensureSpace(24);
-  doc.text(`AP Precalculus Practice Problem Set${isTeacher ? " -- Teacher Answer Key" : ""}`, margin, y);
+  doc.text(`Precalculus Practice Problem Set${isTeacher ? " -- Teacher Answer Key" : ""}`, margin, y);
   y += 22;
 
   doc.setFont("helvetica", "normal");
@@ -127,5 +127,5 @@ function generateWorksheetPdf(problems, options) {
 
   const fileSuffix = isTeacher ? "answer-key" : "student";
   const dateStr = new Date().toISOString().slice(0, 10);
-  doc.save(`ap-precalc-problem-set-${fileSuffix}-${dateStr}.pdf`);
+  doc.save(`precalc-problem-set-${fileSuffix}-${dateStr}.pdf`);
 }

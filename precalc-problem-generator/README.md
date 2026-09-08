@@ -1,8 +1,12 @@
-# AP Precalculus Problem Set Generator
+# Precalculus Problem Set Generator
 
-A self-contained, client-side web app that generates randomized AP
-Precalculus practice problem sets covering Units 1&ndash;4 of the College
-Board AP Precalculus Course and Exam Description.
+A self-contained, client-side web app that generates randomized
+Precalculus practice problem sets covering all 11 units of the Brooklyn
+Tech Precalculus curriculum map (Functions; Polynomials; Rational
+Functions; Exponential and Logarithmic Functions; Conic Sections;
+Trigonometric Functions; Analytic Trigonometry; Additional Topics of
+Trigonometry; Parametric Equations and Polar Coordinates; Vectors and
+Matrices; Sequences and Series).
 
 ## Usage
 
@@ -25,7 +29,7 @@ any static file server). No build step, server, or install is required.
 
 - `index.html` &mdash; page layout and script includes
 - `css/styles.css` &mdash; styling (screen + print)
-- `js/curriculum.js` &mdash; AP Precalculus unit/topic list and topic-to-generator mapping
+- `js/curriculum.js` &mdash; Brooklyn Tech Precalculus unit/topic list and topic-to-generator mapping
 - `js/generators.js` &mdash; randomized problem generators (one per topic family), with difficulty scaling and both MC/free-response output
 - `js/app.js` &mdash; UI wiring: topic tree, settings, rendering
 - `js/pdf.js` &mdash; client-side PDF export via jsPDF

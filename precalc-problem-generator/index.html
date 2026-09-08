@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AP Precalculus Problem Set Generator</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>AP Precalculus Problem Set Generator</h1>
+  <p class="subtitle">Build custom practice problem sets covering the AP Precalculus curriculum (Units 1&ndash;4), with an optional teacher answer key and client-side PDF export.</p>
+</header>
+
+<main class="layout">
+  <section class="controls" aria-label="Problem set settings">
+    <div class="control-block">
+      <h2>Units &amp; Topics</h2>
+      <div class="unit-toolbar">
+        <button type="button" id="selectAllTopics" class="btn-link">Select all</button>
+        <button type="button" id="clearAllTopics" class="btn-link">Clear all</button>
+      </div>
+      <div id="unitTopicTree" class="unit-tree"></div>
+    </div>
+
+    <div class="control-block">
+      <h2>Question Settings</h2>
+
+      <label class="field">
+        <span>Number of questions</span>
+        <input type="number" id="numQuestions" min="1" max="60" value="10" />
+      </label>
+
+      <label class="field">
+        <span>Question type</span>
+        <select id="questionType">
+          <option value="mixed">Mixed (multiple choice + free response)</option>
+          <option value="mc">Multiple choice only</option>
+          <option value="fr">Free response only</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Difficulty</span>
+        <select id="difficulty">
+          <option value="1">Easy</option>
+          <option value="2" selected>Medium</option>
+          <option value="3">Hard</option>
+          <option value="mixed">Mixed</option>
+        </select>
+      </label>
+
+      <fieldset class="field toggle-group">
+        <legend>View</legend>
+        <label class="radio-option">
+          <input type="radio" name="viewMode" value="student" checked />
+          <span>Student version</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="viewMode" value="teacher" />
+          <span>Teacher answer key</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="control-block actions">
+      <button type="button" id="generateBtn" class="btn-primary">Generate Problem Set</button>
+      <button type="button" id="downloadPdfBtn" class="btn-secondary" disabled>Download PDF</button>
+      <p id="statusMsg" class="status-msg" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="preview" aria-label="Problem set preview">
+    <div id="worksheet" class="worksheet">
+      <div class="empty-state">
+        <p>Select topics on the left, choose your settings, and click <strong>Generate Problem Set</strong> to preview problems here.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <p>Problems are generated locally in your browser. No data leaves your device.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="js/curriculum.js"></script>
+<script src="js/generators.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

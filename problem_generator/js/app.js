@@ -143,7 +143,35 @@ function generateProblemSet() {
   document.getElementById("downloadBtn").disabled = false;
 }
 
-function downloadPdf() {
+// Saves the given filename/blob using the host's normal browser download
+// when this page is served normally (e.g. a school opening index.html).
+// If it's running inside a Claude Artifact preview instead, direct
+// downloads are sandboxed, so it hands the file to that host's own
+// save API when available, and falls back quietly otherwise.
+async function savePdfBlob(filename, blob) {
+  if (typeof window.claude?.use === "function") {
+    try {
+      const downloads = await window.claude.use("downloads");
+      if (downloads) {
+        await downloads.save({ filename, data: blob });
+        return { via: "claude" };
+      }
+    } catch (err) {
+      return { via: "claude", error: err };
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { via: "browser" };
+}
+
+async function downloadPdf() {
   if (!currentQuestions.length) generateProblemSet();
   if (!currentQuestions.length) return;
   const mode = getSelectedMode();
@@ -159,7 +187,14 @@ function downloadPdf() {
     mode
   });
   const filenameBase = title.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "linear_algebra_problem_set";
-  doc.save(`${filenameBase}_${mode}.pdf`);
+  const filename = `${filenameBase}_${mode}.pdf`;
+  const statusHint = document.getElementById("statusHint");
+  const result = await savePdfBlob(filename, doc.output("blob"));
+  if (result.error) {
+    statusHint.textContent = result.error.code === "declined" ? "PDF save cancelled." : "Couldn't save the PDF here.";
+  } else {
+    statusHint.textContent = "";
+  }
 }
 
 function wireEvents() {

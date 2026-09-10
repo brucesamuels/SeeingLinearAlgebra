@@ -1,18 +1,19 @@
-/* Helpers that turn Frac matrices/vectors into aligned monospace text blocks
-   so the same content can be dropped into the HTML preview (<pre>) and into
-   the PDF (courier font) without any custom bracket-drawing code. */
+/* Helpers that turn Frac matrices/vectors into real KaTeX-typeset LaTeX
+   (rendered via renderMathInElement -- see js/mathify.js and js/app.js)
+   instead of hand-aligned ASCII brackets. Each still returns an array of
+   lines (now always length 1) so callers that build up multi-matrix blocks
+   with `.flat()` and monoLines() keep working unchanged. */
+
+function matToTex(M) {
+  return "\\begin{bmatrix} " + M.map(row => row.map(x => x.toString()).join(" & ")).join(" \\\\ ") + " \\end{bmatrix}";
+}
 
 function matrixRows(M) {
-  const strs = M.map(row => row.map(x => x.toString()));
-  const width = Math.max(1, ...strs.flat().map(s => s.length));
-  return strs.map(r => "[ " + r.map(s => s.padStart(width)).join("  ") + " ]");
+  return [`\\(${matToTex(M)}\\)`];
 }
 
 function labeledMatrix(label, M) {
-  const rows = matrixRows(M);
-  const prefix = `${label} = `;
-  const pad = " ".repeat(prefix.length);
-  return rows.map((r, i) => (i === 0 ? prefix : pad) + r);
+  return [`${label} = \\(${matToTex(M)}\\)`];
 }
 
 function colVectorRows(v) {

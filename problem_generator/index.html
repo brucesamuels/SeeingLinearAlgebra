@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seeing Linear Algebra -- Problem Set Generator</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="vendor/katex.min.css">
 </head>
 <body>
 <header class="site-header">
@@ -53,7 +54,7 @@
 
     <div class="field actions">
       <button type="button" id="generateBtn" class="primary-btn">Generate problem set</button>
-      <button type="button" id="downloadBtn" class="secondary-btn" disabled>Download PDF</button>
+      <button type="button" id="downloadBtn" class="secondary-btn" disabled>Print / Save as PDF</button>
     </div>
     <p class="hint" id="statusHint"></p>
     <p class="offline-note">Runs entirely in your browser. No data is sent anywhere, and it works with no internet connection once this page has loaded.</p>
@@ -74,14 +75,15 @@
   <p>Curriculum units follow this project's own course checkpoints (a Strang-style Introduction to Linear Algebra sequence).</p>
 </footer>
 
+<script src="vendor/katex.min.js"></script>
+<script src="vendor/katex-auto-render.min.js"></script>
 <script src="data/curriculum.js"></script>
 <script src="js/math.js"></script>
 <script src="js/render.js"></script>
+<script src="js/mathify.js"></script>
 <script src="js/generators.js"></script>
 <script src="js/questionBank.js"></script>
 <script src="js/engine.js"></script>
-<script src="vendor/jspdf.umd.min.js"></script>
-<script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

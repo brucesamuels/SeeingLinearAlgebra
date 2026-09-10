@@ -1,8 +1,8 @@
 # Linear Algebra Problem Set Generator
 
 A self-contained, client-side web app that generates randomized linear
-algebra problem sets (and PDF worksheets / answer keys) for the Seeing
-Linear Algebra course.
+algebra problem sets (with real typeset math and PDF worksheets / answer
+keys) for the Seeing Linear Algebra course.
 
 ## Opening it
 
@@ -18,10 +18,14 @@ Every dependency this app needs ships **inside this folder** -- there are
 no `<script src="https://...">` references to any CDN, font host, or API,
 anywhere in the app:
 
-- `vendor/jspdf.umd.min.js` is a local copy of jsPDF (MIT licensed; see
-  `vendor/jspdf.LICENSE.txt`), used only for client-side PDF generation.
-- All fonts are the browser's built-in system fonts (no Google Fonts or
-  other webfont requests).
+- `vendor/katex.min.js`, `vendor/katex-auto-render.min.js`, and
+  `vendor/katex.min.css` are a local copy of KaTeX (MIT licensed), used to
+  typeset matrices, vectors, and other math notation. `katex.min.css` has
+  every font it needs inlined as base64 data URIs, so there's no separate
+  font-file request either.
+- PDF export uses the browser's own print-to-PDF flow (no vendored PDF
+  library needed) -- click **Print / Save as PDF** and choose "Save as
+  PDF" in the print dialog.
 - All problem generation and rendering logic is plain local JavaScript.
 
 Because nothing is fetched over the network at runtime, a school's web
@@ -83,8 +87,9 @@ question.
 4. Pick the number of questions.
 5. Toggle **Student worksheet** vs **Teacher answer key**.
 6. Click **Generate problem set** to preview it on the page, then
-   **Download PDF** to save a print-ready PDF (blank work space and no
-   answers in student mode; full worked solutions in teacher mode).
+   **Print / Save as PDF** to save a print-ready PDF (blank work space and
+   no answers in student mode; full worked solutions in teacher mode) --
+   choose "Save as PDF" in your browser's print dialog.
 
 Regenerating with the same options produces a new random problem set each
 time (it is not deterministic across generations).

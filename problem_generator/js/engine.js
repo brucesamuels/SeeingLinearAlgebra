@@ -104,9 +104,9 @@ function flattenBlock(block) {
   const lines = [];
   for (const item of block) {
     if (item.kind === "mono") {
-      for (const l of item.text.split("\n")) lines.push({ mono: true, text: l });
+      for (const l of item.text.split("\n")) lines.push({ mono: true, text: mathify(l) });
     } else {
-      lines.push({ mono: false, text: item.text });
+      lines.push({ mono: false, text: mathify(item.text) });
     }
   }
   return lines;

@@ -84,6 +84,17 @@ function renderPreview(questions, mode) {
     content.appendChild(el("p", { class: "empty-state", text: "No questions matched your selection." }));
     return;
   }
+  const title = document.getElementById("worksheetTitle").value.trim() || "Linear Algebra Problem Set";
+  const header = el("div", { class: "sheet-header" });
+  header.appendChild(el("h2", { class: "sheet-title", text: mode === "teacher" ? `${title} \u2014 Teacher Answer Key` : title }));
+  header.appendChild(el("div", { class: "sheet-meta", text: `${questions.length} question${questions.length === 1 ? "" : "s"} \u00b7 Generated ${new Date().toLocaleDateString()}` }));
+  if (mode === "student") {
+    const fields = el("div", { class: "sheet-fields" });
+    fields.appendChild(el("span", { text: "Name: " + "_".repeat(28) }));
+    fields.appendChild(el("span", { text: "Date: " + "_".repeat(14) }));
+    header.appendChild(fields);
+  }
+  content.appendChild(header);
   questions.forEach((q, i) => {
     const card = el("div", { class: "question-card" });
     card.appendChild(el("h3", {}, [
@@ -91,20 +102,24 @@ function renderPreview(questions, mode) {
       el("span", { class: "diff-badge", text: diffTitle(q.difficulty) })
     ]));
     for (const line of flattenBlock(q.statement)) {
-      if (line.mono) card.appendChild(el("pre", { text: line.text || " " }));
-      else card.appendChild(el("p", { text: line.text }));
+      card.appendChild(el("p", { class: line.mono ? "mathline" : "", text: line.text || " " }));
     }
     if (mode === "teacher") {
       const ansBlock = el("div", { class: "answer-block" });
       ansBlock.appendChild(el("div", { class: "answer-label", text: "Teacher key" }));
       for (const line of flattenBlock(q.answer)) {
-        if (line.mono) ansBlock.appendChild(el("pre", { text: line.text || " " }));
-        else ansBlock.appendChild(el("p", { text: line.text }));
+        ansBlock.appendChild(el("p", { class: line.mono ? "mathline" : "", text: line.text || " " }));
       }
       card.appendChild(ansBlock);
     }
     content.appendChild(card);
   });
+  if (window.renderMathInElement) {
+    window.renderMathInElement(content, {
+      delimiters: [{ left: "\\(", right: "\\)", display: false }],
+      throwOnError: false,
+    });
+  }
 }
 
 function summarizeSelection(topicIds, typeIds, difficulty) {
@@ -143,58 +158,13 @@ function generateProblemSet() {
   document.getElementById("downloadBtn").disabled = false;
 }
 
-// Saves the given filename/blob using the host's normal browser download
-// when this page is served normally (e.g. a school opening index.html).
-// If it's running inside a Claude Artifact preview instead, direct
-// downloads are sandboxed, so it hands the file to that host's own
-// save API when available, and falls back quietly otherwise.
-async function savePdfBlob(filename, blob) {
-  if (typeof window.claude?.use === "function") {
-    try {
-      const downloads = await window.claude.use("downloads");
-      if (downloads) {
-        await downloads.save({ filename, data: blob });
-        return { via: "claude" };
-      }
-    } catch (err) {
-      return { via: "claude", error: err };
-    }
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  return { via: "browser" };
-}
-
-async function downloadPdf() {
+// Opens the browser's own print dialog -- with real KaTeX-typeset math on
+// screen, printing (then choosing "Save as PDF" in the dialog) produces a
+// PDF with real vector text that matches the on-screen typesetting exactly.
+function downloadPdf() {
   if (!currentQuestions.length) generateProblemSet();
   if (!currentQuestions.length) return;
-  const mode = getSelectedMode();
-  const title = document.getElementById("worksheetTitle").value.trim() || "Linear Algebra Problem Set";
-  const topicIds = getSelectedTopicIds();
-  const typeIds = getSelectedTypeIds();
-  const difficulty = getSelectedDifficulty();
-  const dateStr = new Date().toLocaleDateString();
-  const subtitle = `${summarizeSelection(topicIds, typeIds, difficulty)} - Generated ${dateStr}`;
-  const doc = buildPdf(currentQuestions, {
-    title: mode === "teacher" ? `${title} -- Teacher Answer Key` : title,
-    subtitle,
-    mode
-  });
-  const filenameBase = title.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "") || "linear_algebra_problem_set";
-  const filename = `${filenameBase}_${mode}.pdf`;
-  const statusHint = document.getElementById("statusHint");
-  const result = await savePdfBlob(filename, doc.output("blob"));
-  if (result.error) {
-    statusHint.textContent = result.error.code === "declined" ? "PDF save cancelled." : "Couldn't save the PDF here.";
-  } else {
-    statusHint.textContent = "";
-  }
+  window.print();
 }
 
 function wireEvents() {

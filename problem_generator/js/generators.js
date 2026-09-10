@@ -605,9 +605,28 @@ GENERATORS["orth-complement"] = (rng, diff) => {
 GENERATORS["orth-gramschmidt"] = (rng, diff) => {
   const dim = diff === 3 ? 3 : 2;
   const count = diff === 3 ? 3 : 2;
-  const vecs = Array.from({ length: count }, () => vecFromInts(Array.from({ length: dim }, () => randInt(rng, -3, 3))));
-  const statement = [...vecs.map((v, i) => textLine(`v${i + 1} = ${tupleStr(v)}`)), textLine("Apply the Gram-Schmidt process to produce an orthogonal basis {u1, u2" + (count === 3 ? ", u3" : "") + "}.")];
   const dotp = (a, b) => a.reduce((s, ai, i) => s.add(ai.mul(b[i])), F(0));
+  // Retry if the random vectors turn out linearly dependent (or a stray
+  // all-zero draw), which would divide by zero partway through Gram-Schmidt.
+  function isDegenerate(candidateVecs) {
+    const built = [];
+    for (let i = 0; i < candidateVecs.length; i++) {
+      let u = candidateVecs[i].slice();
+      for (let j = 0; j < built.length; j++) {
+        if (dotp(built[j], built[j]).isZero()) return true;
+        const scalar = dotp(built[j], candidateVecs[i]).div(dotp(built[j], built[j]));
+        u = u.map((c, k) => c.sub(built[j][k].mul(scalar)));
+      }
+      if (u.every(c => c.isZero())) return true;
+      built.push(u);
+    }
+    return false;
+  }
+  let vecs;
+  do {
+    vecs = Array.from({ length: count }, () => vecFromInts(Array.from({ length: dim }, () => randInt(rng, -3, 3))));
+  } while (isDegenerate(vecs));
+  const statement = [...vecs.map((v, i) => textLine(`v${i + 1} = ${tupleStr(v)}`)), textLine("Apply the Gram-Schmidt process to produce an orthogonal basis {u1, u2" + (count === 3 ? ", u3" : "") + "}.")];
   const us = [];
   const answer = [];
   for (let i = 0; i < count; i++) {
@@ -847,8 +866,13 @@ GENERATORS["pd-ldl"] = (rng, diff) => {
 
 GENERATORS["pd-ata"] = (rng, diff) => {
   const m = diff === 3 ? 3 : 2, n = 2;
-  const A = matFromInts(Array.from({ length: m }, () => Array.from({ length: n }, () => randInt(rng, -3, 3))));
-  const ATA = matMul(transpose(A), A);
+  // Retry if A's first column comes up all-zero (rare), which would make
+  // the first pivot -- and so the pivot-test division -- zero.
+  let A, ATA;
+  do {
+    A = matFromInts(Array.from({ length: m }, () => Array.from({ length: n }, () => randInt(rng, -3, 3))));
+    ATA = matMul(transpose(A), A);
+  } while (ATA[0][0].isZero());
   const [p1, p2] = pivotsOfSymmetric2(ATA);
   const statement = [monoLines(labeledMatrix("A", A)), textLine("Compute A^T A and use the pivot test to determine whether A^T A is positive definite (vs. only positive semidefinite).")];
   const answer = [

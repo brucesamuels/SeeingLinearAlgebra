@@ -200,16 +200,12 @@ button.secondary-btn:not(:disabled):hover { background: var(--accent-soft); }
   white-space: nowrap;
 }
 .question-card p { margin: 0.3rem 0; }
-.question-card pre {
+.question-card p.mathline {
   background: var(--mono-bg);
-  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0.5rem 0.7rem;
+  padding: 0.45rem 0.7rem;
   margin: 0.35rem 0;
   overflow-x: auto;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.85rem;
-  line-height: 1.35;
 }
 .answer-block {
   margin-top: 0.6rem;
@@ -218,6 +214,15 @@ button.secondary-btn:not(:disabled):hover { background: var(--accent-soft); }
 }
 .answer-block .answer-label { font-weight: 700; color: var(--danger); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.02em; }
 
+.sheet-header {
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.9rem;
+  border-bottom: 2px solid var(--text);
+}
+.sheet-title { margin: 0; font-size: 1.25rem; }
+.sheet-meta { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.82rem; }
+.sheet-fields { display: flex; gap: 2rem; margin-top: 0.6rem; font-size: 0.9rem; color: var(--muted); }
+
 .site-footer {
   padding: 1rem 1.5rem 2rem;
   color: var(--muted);
@@ -225,8 +230,12 @@ button.secondary-btn:not(:disabled):hover { background: var(--accent-soft); }
 }
 
 @media print {
+  :root { color-scheme: light; }
+  body { background: #fff; }
   .site-header, .site-footer, .controls, .preview-header { display: none; }
   main { grid-template-columns: 1fr; padding: 0; }
   .panel.preview { border: none; padding: 0; }
   .question-card { break-inside: avoid; border: none; border-bottom: 1px solid #ccc; border-radius: 0; }
+  .question-card p.mathline { background: #f3f3f3; }
+  .sheet-header { border-bottom-color: #000; }
 }

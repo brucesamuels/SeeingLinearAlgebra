@@ -7,6 +7,16 @@ A visual linear algebra series produced for Brooklyn Technical High School.
 - Episode 1: Vectors, Magnitude, Unit Vectors, Coordinates, and Span
 - Episode 2: Span and Vector Subspaces
 
+## Problem Set Generator
+
+`problem_generator/` is a self-contained, client-side web app for
+generating randomized linear algebra problem sets and PDF worksheets /
+answer keys, covering the same course sequence as the checkpoints below.
+It has no external dependencies at runtime (see
+`problem_generator/README.md`), so it keeps working on school networks
+that block CDNs. Open `problem_generator/index.html` directly in a
+browser, no build step required.
+
 ## Project root
 
 All Manim commands should be run from the project root so imports from `common` work correctly.

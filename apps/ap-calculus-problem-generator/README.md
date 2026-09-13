@@ -34,7 +34,7 @@ uniformly at random among whichever are registered for a topic, so a
 topic with more than one generator gets that much more variety per
 worksheet.
 
-**Hand-written generators** (`generators.js`, one per topic, 31 total)
+**Hand-written generators** (`generators.js`, one per topic, 33 total)
 each build one fixed function shape (e.g. "quadratic times linear,
 product rule") with randomized coefficients. Arithmetic uses an exact
 fraction class (`Frac` in `core.js`) and polynomial helpers, so answers

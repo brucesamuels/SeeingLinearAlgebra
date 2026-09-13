@@ -11,6 +11,8 @@ const AP_CALC_CURRICULUM = [
       { code: '1.1', name: 'Evaluating Limits by Factoring' },
       { code: '1.2', name: 'Limits at Infinity (End Behavior)' },
       { code: '1.3', name: 'Continuity: Solving for a Constant' },
+      { code: '1.4', name: 'Evaluating Limits by Rationalizing (Radicals)' },
+      { code: '1.5', name: 'Evaluating Limits with Complex Fractions' },
     ],
   },
   {

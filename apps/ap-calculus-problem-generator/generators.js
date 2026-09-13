@@ -124,6 +124,73 @@ function genContinuityK(difficulty) {
   return { unit: 1, topic: '1.3', topicName: 'Continuity: Solving for a Constant', difficulty, stem, answerHTML: K.toString(), solution: steps, wrongHTML: makeNumericDistractors(K) };
 }
 
+function genLimitRadical(difficulty) {
+  // f(x) = (√(ax+b) − m) / (x − c)  [or the reciprocal shape], constructed
+  // so that a·c + b = m² exactly — direct substitution gives 0/0, and
+  // multiplying by the conjugate √(ax+b) + m cancels the (x − c) factor:
+  //   numerator becomes (ax+b) − m² = a(x − c)
+  // leaving limit = a / (2m), or 2m / a for the reciprocal shape.
+  const form = choice(['numRadical', 'denRadical']);
+  const mRange = difficulty === 1 ? [1, 3] : difficulty === 2 ? [1, 4] : [1, 6];
+  const cRange = difficulty === 1 ? [-4, 4] : difficulty === 2 ? [-6, 6] : [-8, 8];
+  const aChoices = difficulty === 1 ? [1] : difficulty === 2 ? [1, 2] : [1, 2, 3];
+  const m = randInt(mRange[0], mRange[1]);
+  const c = randInt(cRange[0], cRange[1]);
+  const a = choice(aChoices);
+  const b = m * m - a * c;
+  const insideHTML = polyToHTML(linear(a, b));
+  const radicalHTML = `√(${insideHTML})`;
+  const xMinusC = polyToHTML(linear(1, -c));
+
+  let stem, answer, steps;
+  if (form === 'numRadical') {
+    answer = F(a, 2 * m);
+    stem = `Evaluate the limit:<br><span class="mathblock">lim<sub>x→${c}</sub> [ (${radicalHTML} − ${m}) / (${xMinusC}) ]</span>`;
+    steps = [
+      `Direct substitution gives the indeterminate form 0/0, since ${radicalHTML} = ${m} when x = ${c}.`,
+      `Multiply the numerator and denominator by the conjugate ${radicalHTML} + ${m}.`,
+      `The numerator becomes (${insideHTML}) − ${m * m} = ${a}(${xMinusC}), which cancels with the denominator's (${xMinusC}).`,
+      `The limit becomes lim<sub>x→${c}</sub> [ ${a} / (${radicalHTML} + ${m}) ] = ${a} / (${m} + ${m}) = ${answer.toString()}.`,
+    ];
+  } else {
+    answer = F(2 * m, a);
+    stem = `Evaluate the limit:<br><span class="mathblock">lim<sub>x→${c}</sub> [ (${xMinusC}) / (${radicalHTML} − ${m}) ]</span>`;
+    steps = [
+      `Direct substitution gives the indeterminate form 0/0, since ${radicalHTML} = ${m} when x = ${c}.`,
+      `Multiply the numerator and denominator by the conjugate ${radicalHTML} + ${m}.`,
+      `The denominator becomes (${insideHTML}) − ${m * m} = ${a}(${xMinusC}), which cancels with the numerator's (${xMinusC}).`,
+      `The limit becomes lim<sub>x→${c}</sub> [ (${radicalHTML} + ${m}) / ${a} ] = (${m} + ${m}) / ${a} = ${answer.toString()}.`,
+    ];
+  }
+  return { unit: 1, topic: '1.4', topicName: 'Evaluating Limits by Rationalizing (Radicals)', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
+function genLimitComplexFraction(difficulty) {
+  // f(x) = [1/(x+k) − 1/(c+k)] / (x − c). Let d = c+k (≠ 0). Combining the
+  // complex fraction gives (c−x) / [d(x+k)], and dividing by (x−c) = −(c−x)
+  // leaves −1/[d(x+k)], so the limit is −1/d².
+  const range = difficulty === 1 ? [-4, 4] : difficulty === 2 ? [-6, 6] : [-8, 8];
+  let c, k, d;
+  do {
+    c = randInt(range[0], range[1]);
+    k = randInt(range[0], range[1]);
+    d = c + k;
+  } while (d === 0);
+  const innerHTML = polyToHTML(linear(1, k));
+  const xMinusC = polyToHTML(linear(1, -c));
+  const dAbs = Math.abs(d);
+  const secondTerm = d < 0 ? `+ 1/${dAbs}` : `− 1/${dAbs}`;
+  const answer = F(-1, d * d);
+  const stem = `Evaluate the limit:<br><span class="mathblock">lim<sub>x→${c}</sub> [ (1/(${innerHTML}) ${secondTerm}) / (${xMinusC}) ]</span>`;
+  const steps = [
+    `Direct substitution gives the indeterminate form 0/0, since ${innerHTML} = ${d} when x = ${c}.`,
+    `Combine the complex fraction over a common denominator: 1/(${innerHTML}) − 1/${d} = (${d} − (${innerHTML})) / [${d}(${innerHTML})] = (${c} − x) / [${d}(${innerHTML})].`,
+    `Since ${c} − x = −(${xMinusC}), dividing by (${xMinusC}) leaves −1 / [${d}(${innerHTML})].`,
+    `Substitute x = ${c}: −1 / [${d} · ${d}] = ${answer.toString()}.`,
+  ];
+  return { unit: 1, topic: '1.5', topicName: 'Evaluating Limits with Complex Fractions', difficulty, stem, answerHTML: answer.toString(), solution: steps, wrongHTML: makeNumericDistractors(answer) };
+}
+
 /* ---------------------------------------------------------------------- *
  * Unit 2 — Differentiation: Basic Rules
  * ---------------------------------------------------------------------- */
@@ -954,6 +1021,8 @@ const GENERATORS = [
   { topic: '1.1', fn: genLimitFactor },
   { topic: '1.2', fn: genLimitInfinity },
   { topic: '1.3', fn: genContinuityK },
+  { topic: '1.4', fn: genLimitRadical },
+  { topic: '1.5', fn: genLimitComplexFraction },
   { topic: '2.1', fn: genPowerRule },
   { topic: '2.2', fn: genBasicRulesSum },
   { topic: '2.3', fn: genProductRule },

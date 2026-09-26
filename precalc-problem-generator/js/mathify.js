@@ -18,11 +18,18 @@ function mathify(text) {
   if (typeof text !== "string" || !text) return text;
 
   let s = text;
-  const placeholders = [];
+  const placeholders = []; // each entry is raw LaTeX, without \( \) delimiters
   function protect(latex) {
     const token = `\u0001${placeholders.length}\u0002`;
-    placeholders.push(`\\(${latex}\\)`);
+    placeholders.push(latex);
     return token;
+  }
+  // Resolves any placeholder tokens already embedded in a fragment back to
+  // their raw LaTeX, so that fragment can be safely nested inside a new
+  // protect() call (e.g. a fraction whose numerator already contains a
+  // protected sqrt) without leaving an unresolved token inside the result.
+  function resolveNested(str) {
+    return str.replace(/\u0001(\d+)\u0002/g, (_, i) => placeholders[Number(i)]);
   }
 
   // Fixes safe to apply to text captured *inside* a structure (sqrt/frac/
@@ -61,6 +68,24 @@ function mathify(text) {
     (_, a, b, c, d) => protect(`\\begin{vmatrix} ${a} & ${b} \\\\ ${c} & ${d} \\end{vmatrix}`)
   );
 
+  // 4c. algebraic fractions where the numerator and/or denominator is a
+  //     bracketed or parenthesized group -- e.g. [(x-1)(x-2)] / [(x-3)],
+  //     (2x + 3) / [(x-4)(x-5)], or 5 / (x - 2). Runs before the generic
+  //     bare-integer fraction rule (13) and the abs-value-bars rule (14)
+  //     below, so those don't fight over the same "/" or "(...)".
+  {
+    const BRACKETY = "\\[[^\\[\\]]+\\]";
+    const PARENY = "\\([^()]+\\)";
+    const GROUP = `(?:${BRACKETY}|${PARENY})`;
+    // strip the outer bracket/paren, then resolve any placeholder token
+    // already sitting inside (e.g. from an earlier sqrt(...) match) back
+    // to raw LaTeX, since it is about to be nested inside a new one.
+    const clean = (g) => resolveNested(g.slice(1, -1));
+    s = s.replace(new RegExp(`(${GROUP})\\s*/\\s*(${GROUP})`, "g"), (_, num, den) => protect(`\\frac{${clean(num)}}{${clean(den)}}`));
+    s = s.replace(new RegExp(`(-?\\d+)\\s*/\\s*(${GROUP})`, "g"), (_, num, den) => protect(`\\frac{${num}}{${clean(den)}}`));
+    s = s.replace(new RegExp(`(${GROUP})\\s*/\\s*(-?\\d+)`, "g"), (_, num, den) => protect(`\\frac{${clean(num)}}{${den}}`));
+  }
+
   // 5. vectors: <a, b, c> (3-component) then <a, b> (2-component)
   s = s.replace(/<\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*>/g, (_, a, b, c) => protect(`\\langle ${a},\\ ${b},\\ ${c} \\rangle`));
   s = s.replace(/<\s*(-?[\d.]+)\s*,\s*(-?[\d.]+)\s*>/g, (_, a, b) => protect(`\\langle ${a},\\ ${b} \\rangle`));
@@ -72,6 +97,14 @@ function mathify(text) {
 
   // 7. limit / approach arrow
   s = s.replace(/->/g, () => protect("\\to"));
+
+  // 7b. bare strict inequality symbols. Safe now: <=, >=, ->, and vector
+  //     <a,b> forms above have already consumed every other legitimate
+  //     use of < or >. Uses \lt/\gt (not literal < >) since some call
+  //     sites insert this text via innerHTML, where a literal "<" would
+  //     be misparsed as the start of a tag.
+  s = s.replace(/</g, () => protect("\\lt"));
+  s = s.replace(/>/g, () => protect("\\gt"));
 
   // 8. exponents: parenthesized group first, then bare token
   s = s.replace(/\^\(([^()]*)\)/g, (_, inner) => protect(`^{${inner.replace(/\*/g, "\\cdot ")}}`));
@@ -104,10 +137,13 @@ function mathify(text) {
   // 14. absolute value bars |EXPR| (simple, non-nested)
   s = s.replace(/\|([^|]+)\|/g, (_, inner) => protect(`\\left|${inner}\\right|`));
 
-  // Restore placeholders. The sentinel wrapper (\u0001 ... \u0002) guarantees
-  // this only ever matches a real placeholder token, never a plain number
-  // already present in the text.
-  s = s.replace(/\u0001(\d+)\u0002/g, (_, i) => placeholders[Number(i)]);
+  // Restore placeholders, wrapping each with its \( \) delimiter here (not
+  // in protect()) so that a placeholder resolved *inside* another one via
+  // resolveNested() carries no delimiter markers of its own -- only the
+  // outermost substitution needs them. The sentinel wrapper (\u0001 ...
+  // \u0002) guarantees this only ever matches a real placeholder token,
+  // never a plain number already present in the text.
+  s = s.replace(/\u0001(\d+)\u0002/g, (_, i) => `\\(${placeholders[Number(i)]}\\)`);
 
   return s;
 }

@@ -31,15 +31,19 @@ any static file server). No build step, server, or install is required.
 - `css/styles.css` &mdash; styling (screen + print)
 - `js/curriculum.js` &mdash; Brooklyn Tech Precalculus unit/topic list and topic-to-generator mapping
 - `js/generators.js` &mdash; randomized problem generators (one per topic family), with difficulty scaling and both MC/free-response output
+- `js/mathify.js` &mdash; converts each generator's plain-ASCII math notation into KaTeX-renderable LaTeX at render time (see below)
 - `js/app.js` &mdash; UI wiring: topic tree, settings, rendering
 - `js/pdf.js` &mdash; client-side PDF export via jsPDF
 
 ## Notes
 
-- Math notation is written in plain ASCII (e.g. `x^2`, `sqrt(x)`, `pi`,
-  `theta`) rather than Unicode math symbols, since the PDF export uses
-  jsPDF's built-in fonts, which only support a Latin-1/WinAnsi character
-  set.
-- jsPDF is loaded from a CDN (cdnjs) in `index.html`; an internet
-  connection is required the first time the page loads for PDF export to
-  work.
+- Generators emit math in plain ASCII (e.g. `x^2`, `sqrt(x)`, `pi`,
+  `theta`) rather than Unicode or LaTeX, since the PDF export uses jsPDF's
+  built-in fonts, which only support a Latin-1/WinAnsi character set. On
+  screen, `js/mathify.js` converts that same ASCII notation into LaTeX
+  (wrapped in `\( ... \)`) and [KaTeX](https://katex.org/)'s auto-render
+  extension renders it in place, so the on-page preview shows real math
+  typesetting while the exported PDF stays plain-text/ASCII.
+- jsPDF and KaTeX are both loaded from a CDN (cdnjs) in `index.html`; an
+  internet connection is required the first time the page loads for math
+  rendering and PDF export to work.

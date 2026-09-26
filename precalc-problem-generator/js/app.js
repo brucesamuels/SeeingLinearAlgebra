@@ -191,7 +191,7 @@
       numSpan.className = "problem-number";
       numSpan.textContent = `${idx + 1}.`;
       promptEl.appendChild(numSpan);
-      promptEl.appendChild(document.createTextNode(p.prompt));
+      promptEl.appendChild(document.createTextNode(mathify(p.prompt)));
       const tag = document.createElement("span");
       tag.className = "problem-tag";
       tag.textContent = `${p.topicId} · ${diffLabel} · ${typeLabel}`;
@@ -205,7 +205,7 @@
         p.choices.forEach((choiceText, i) => {
           const li = document.createElement("li");
           if (isTeacher && i === p.correctIndex) li.classList.add("correct-choice");
-          li.textContent = `${letters[i]}. ${choiceText}`;
+          li.textContent = `${letters[i]}. ${mathify(choiceText)}`;
           ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -220,14 +220,14 @@
         answerBlock.className = "answer-block";
         const letters = ["A", "B", "C", "D"];
         const answerLine = document.createElement("div");
-        answerLine.innerHTML = `<strong>Answer:</strong> ${p.type === "mc" ? `${letters[p.correctIndex]}. ${p.answer}` : p.answer}`;
+        answerLine.innerHTML = `<strong>Answer:</strong> ${p.type === "mc" ? `${letters[p.correctIndex]}. ${mathify(p.answer)}` : mathify(p.answer)}`;
         answerBlock.appendChild(answerLine);
         if (p.solution && p.solution.length) {
           const ol = document.createElement("ol");
           ol.className = "solution-steps";
           p.solution.forEach((step) => {
             const li = document.createElement("li");
-            li.textContent = step;
+            li.textContent = mathify(step);
             ol.appendChild(li);
           });
           answerBlock.appendChild(ol);
@@ -237,6 +237,13 @@
 
       worksheetEl.appendChild(div);
     });
+
+    if (window.renderMathInElement) {
+      window.renderMathInElement(worksheetEl, {
+        delimiters: [{ left: "\\(", right: "\\)", display: false }],
+        throwOnError: false,
+      });
+    }
   }
 
   downloadPdfBtn.addEventListener("click", () => {

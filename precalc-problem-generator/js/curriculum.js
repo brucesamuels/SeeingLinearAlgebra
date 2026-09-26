@@ -18,6 +18,8 @@ const CURRICULUM = [
       { id: "1.7", title: "Average Rate of Change", gen: "rateOfChange" },
       { id: "1.8", title: "Transformations of Functions", gen: "functionTransformations" },
       { id: "1.9", title: "Inverse Functions", gen: "inverseFunctions" },
+      { id: "1.10", title: "Absolute Value Inequalities", gen: "absoluteValueInequalities" },
+      { id: "1.11", title: "Quadratic Inequalities", gen: "quadraticInequalities" },
     ],
   },
   {

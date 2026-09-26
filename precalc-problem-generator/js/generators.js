@@ -309,6 +309,97 @@ function absoluteValueFunctions(difficulty, type) {
   return buildMC(prompt, answer, (v) => v, solution, distractors);
 }
 
+function absoluteValueInequalities(difficulty, type) {
+  const a = randNonZero(-5, 5);
+  const b = randInt(-6, 6);
+  const c = randInt(1, 10);
+  const strict = Math.random() < 0.5;
+  const isAnd = Math.random() < 0.5;
+  const ineqSymbol = isAnd ? (strict ? "<" : "<=") : strict ? ">" : ">=";
+  const aTerm = a === 1 ? "x" : a === -1 ? "-x" : `${a}x`;
+  const exprStr = `${aTerm} ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`;
+  const prompt = `Solve the inequality: |${exprStr}| ${ineqSymbol} ${c}`;
+
+  const b1n = -c - b, b1d = a;
+  const b2n = c - b, b2d = a;
+  const loIsB1 = b1n / b1d <= b2n / b2d;
+  const loStr = fracStr(loIsB1 ? b1n : b2n, loIsB1 ? b1d : b2d);
+  const hiStr = fracStr(loIsB1 ? b2n : b1n, loIsB1 ? b2d : b1d);
+
+  const answer = isAnd
+    ? strict
+      ? `${loStr} < x < ${hiStr}`
+      : `${loStr} <= x <= ${hiStr}`
+    : strict
+    ? `x < ${loStr} or x > ${hiStr}`
+    : `x <= ${loStr} or x >= ${hiStr}`;
+
+  const solution = [
+    isAnd
+      ? `|expr| ${ineqSymbol} ${c} means -${c} ${strict ? "<" : "<="} ${exprStr} ${strict ? "<" : "<="} ${c}.`
+      : `|expr| ${ineqSymbol} ${c} means ${exprStr} ${strict ? "<" : "<="} -${c}  or  ${exprStr} ${strict ? ">" : ">="} ${c}.`,
+    `Solving each part for x gives the boundary points x = ${loStr} and x = ${hiStr}` +
+      (a < 0 ? ` (the inequality direction flips when dividing by the negative coefficient ${a}).` : "."),
+    `Solution: ${answer}`,
+  ];
+  if (type === "fr") return buildFR(prompt, answer, solution);
+  const otherForm = isAnd
+    ? strict
+      ? `x < ${loStr} or x > ${hiStr}`
+      : `x <= ${loStr} or x >= ${hiStr}`
+    : strict
+    ? `${loStr} < x < ${hiStr}`
+    : `${loStr} <= x <= ${hiStr}`;
+  const distractors = [otherForm, `x ${strict ? "<" : "<="} ${hiStr}`, `x ${strict ? ">" : ">="} ${loStr}`];
+  return buildMC(prompt, answer, (v) => v, solution, distractors);
+}
+
+function quadraticInequalities(difficulty, type) {
+  const a = difficulty >= 2 ? choice([1, 1, 1, -1, 2, -2]) : 1;
+  let r1, r2;
+  do {
+    r1 = randInt(-6, 6);
+    r2 = randInt(-6, 6);
+  } while (r1 === r2);
+  const lo = Math.min(r1, r2), hi = Math.max(r1, r2);
+  const coeffs = expandTwoFactors(r1, r2).map((v) => v * a);
+  const fx = polyStr(coeffs);
+  const wantPositive = Math.random() < 0.5;
+  const strict = Math.random() < 0.5;
+  const ineqSymbol = wantPositive ? (strict ? ">" : ">=") : strict ? "<" : "<=";
+  const prompt = `Solve the inequality: ${fx} ${ineqSymbol} 0`;
+
+  const outsideIsPositive = a > 0;
+  const wantOutside = wantPositive === outsideIsPositive;
+  const answer = wantOutside
+    ? strict
+      ? `x < ${lo} or x > ${hi}`
+      : `x <= ${lo} or x >= ${hi}`
+    : strict
+    ? `${lo} < x < ${hi}`
+    : `${lo} <= x <= ${hi}`;
+
+  const aPrefix = a === 1 ? "" : a === -1 ? "-" : `${a}`;
+  const solution = [
+    `Factor: ${fx} = ${aPrefix}${linearFactorStr(r1)}${linearFactorStr(r2)}`,
+    `Critical points (zeros): x = ${lo}, x = ${hi}`,
+    `Since the leading coefficient is ${a > 0 ? "positive" : "negative"}, the expression is ${a > 0 ? "positive" : "negative"} outside the roots and ${
+      a > 0 ? "negative" : "positive"
+    } between them.`,
+    `Solution: ${answer}`,
+  ];
+  if (type === "fr") return buildFR(prompt, answer, solution);
+  const otherForm = wantOutside
+    ? strict
+      ? `${lo} < x < ${hi}`
+      : `${lo} <= x <= ${hi}`
+    : strict
+    ? `x < ${lo} or x > ${hi}`
+    : `x <= ${lo} or x >= ${hi}`;
+  const distractors = [otherForm, `x ${strict ? "<" : "<="} ${hi}`, `x ${strict ? ">" : ">="} ${lo}`];
+  return buildMC(prompt, answer, (v) => v, solution, distractors);
+}
+
 function intuitiveLimit(difficulty, type) {
   const useHole = difficulty >= 2 && Math.random() < 0.6;
   if (!useHole) {
@@ -2088,6 +2179,8 @@ const GENERATORS = {
   compositionOfFunctions,
   piecewiseFunctions,
   absoluteValueFunctions,
+  absoluteValueInequalities,
+  quadraticInequalities,
   intuitiveLimit,
   intermediateValueTheorem,
   rateOfChange,
